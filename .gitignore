@@ -1,0 +1,6 @@
+.DS_Store
+.tooling/
+artifacts/
+dist/
+src/bin/
+src/obj/
