@@ -1,5 +1,6 @@
 using HarmonyLib;
 using RevealStarMap.Runtime;
+using RevealStarMap.State;
 
 namespace RevealStarMap.Patches;
 
@@ -13,6 +14,7 @@ public static class SaveGame_OnSpawn_Patch
             return;
         }
 
+        __instance.gameObject.AddOrGet<RevealSnapshotState>();
         __instance.gameObject.AddOrGet<RevealStarMapController>();
     }
 }

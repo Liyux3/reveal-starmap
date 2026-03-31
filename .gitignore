@@ -4,3 +4,4 @@ artifacts/
 dist/
 src/bin/
 src/obj/
+tmp_screens/

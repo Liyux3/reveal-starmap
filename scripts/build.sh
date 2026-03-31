@@ -6,7 +6,6 @@ BUILD_DIR="$ROOT_DIR/artifacts/build"
 DIST_DIR="$ROOT_DIR/dist/liyux.RevealStarMap"
 DOTNET_CLI_HOME_DIR="$ROOT_DIR/.tooling/dotnet-cli"
 DEFAULT_ONI_APP="/Users/liyux/Library/Application Support/Steam/steamapps/common/OxygenNotIncluded/OxygenNotIncluded.app"
-PLIB_DLL="/Users/liyux/Library/Application Support/unity.Klei.Oxygen Not Included/mods/Steam/3561927851/PLib.dll"
 
 find_dotnet() {
   if [[ -n "${DOTNET_BIN:-}" && -x "${DOTNET_BIN}" ]]; then
@@ -21,6 +20,30 @@ find_dotnet() {
 
   if [[ -x "$ROOT_DIR/.tooling/dotnet/dotnet" ]]; then
     echo "$ROOT_DIR/.tooling/dotnet/dotnet"
+    return 0
+  fi
+
+  return 1
+}
+
+find_plib() {
+  if [[ -n "${PLIB_DLL:-}" && -f "${PLIB_DLL}" ]]; then
+    echo "${PLIB_DLL}"
+    return 0
+  fi
+
+  local mods_dir="${ONI_LOCAL_MODS:-$HOME/Library/Application Support/unity.Klei.Oxygen Not Included/mods}"
+  local plib_path
+
+  plib_path="$(find "$mods_dir/Steam" -path '*/PLib.dll' ! -path '*/_old/*' 2>/dev/null | sort | head -n 1)"
+  if [[ -n "$plib_path" ]]; then
+    echo "$plib_path"
+    return 0
+  fi
+
+  plib_path="$(find "$mods_dir/Local" -path '*/PLib.dll' ! -path '*/_old/*' 2>/dev/null | sort | head -n 1)"
+  if [[ -n "$plib_path" ]]; then
+    echo "$plib_path"
     return 0
   fi
 
@@ -47,10 +70,11 @@ find_csc() {
 
 DOTNET_PATH="$(find_dotnet || true)"
 CSC_PATH="$(find_csc || true)"
+PLIB_DLL="$(find_plib || true)"
 
-if [[ -z "$DOTNET_PATH" || -z "$CSC_PATH" ]]; then
-  echo "dotnet SDK or Roslyn compiler not found."
-  echo "Run ./scripts/bootstrap-dotnet.sh first."
+if [[ -z "$DOTNET_PATH" || -z "$CSC_PATH" || -z "$PLIB_DLL" ]]; then
+  echo "dotnet SDK, Roslyn compiler, or PLib.dll not found."
+  echo "Run ./scripts/bootstrap-dotnet.sh first, and make sure PLib is installed in ONI mods."
   exit 1
 fi
 

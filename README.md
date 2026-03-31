@@ -6,12 +6,13 @@ Independent `Oxygen Not Included` mod for revealing the entire `Spaced Out` star
 
 - configurable hotkey through PLib options
 - instant full starmap reveal
+- second press restores the last pre-reveal fog-of-war snapshot
+- restore snapshot is persisted in the save, so a save-load cycle can still roll back a temporary reveal
 - lightweight runtime notification
-- internal reveal-state snapshot capture reserved for a later restore / invert release
 
 ## Default Hotkey
 
-- `Shift + F7`
+- `Shift + F7`, press once to reveal, press again to restore
 
 ## Build
 

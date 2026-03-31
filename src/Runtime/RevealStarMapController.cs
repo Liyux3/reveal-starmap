@@ -17,7 +17,7 @@ internal sealed class RevealStarMapController : KMonoBehaviour
             return;
         }
 
-        RevealStarMapRuntime.RevealEntireMap();
+        RevealStarMapRuntime.TriggerHotkeyAction();
     }
 
     private static bool HotkeyPressed(RevealStarMapSettings settings)

@@ -14,6 +14,9 @@
   <PropertyGroup>
     <OniAppPath Condition="'$(OniAppPath)' == ''">/Users/liyux/Library/Application Support/Steam/steamapps/common/OxygenNotIncluded/OxygenNotIncluded.app</OniAppPath>
     <OniManagedPath>$(OniAppPath)/Contents/Resources/Data/Managed</OniManagedPath>
+    <PlibPath Condition="'$(PlibPath)' == '' and Exists('/Users/liyux/Library/Application Support/unity.Klei.Oxygen Not Included/mods/Steam/2891895988/PLib.dll')">/Users/liyux/Library/Application Support/unity.Klei.Oxygen Not Included/mods/Steam/2891895988/PLib.dll</PlibPath>
+    <PlibPath Condition="'$(PlibPath)' == '' and Exists('/Users/liyux/Library/Application Support/unity.Klei.Oxygen Not Included/mods/Local/liyux.InfiniteGalaxy/PLib.dll')">/Users/liyux/Library/Application Support/unity.Klei.Oxygen Not Included/mods/Local/liyux.InfiniteGalaxy/PLib.dll</PlibPath>
+    <PlibPath Condition="'$(PlibPath)' == '' and Exists('/Users/liyux/Library/Application Support/unity.Klei.Oxygen Not Included/mods/Local/liyux.RevealStarMap/PLib.dll')">/Users/liyux/Library/Application Support/unity.Klei.Oxygen Not Included/mods/Local/liyux.RevealStarMap/PLib.dll</PlibPath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -50,7 +53,7 @@
       <Private>false</Private>
     </Reference>
     <Reference Include="PLib">
-      <HintPath>/Users/liyux/Library/Application Support/unity.Klei.Oxygen Not Included/mods/Steam/3561927851/PLib.dll</HintPath>
+      <HintPath>$(PlibPath)</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="UnityEngine">

@@ -1,10 +1,11 @@
 "workshopitem"
 {
-	"appid" "457140"
-	"contentfolder" "/Users/liyux/Library/Application Support/unity.Klei.Oxygen Not Included/mods/Local/liyux.RevealStarMap"
-	"previewfile" "/Users/liyux/Documents/Playground/reveal-starmap/preview.png"
-	"visibility" "0"
-	"title" "Reveal StarMap"
-	"description" "Reveal the entire Spaced Out starmap with a configurable hotkey. Built for quick inspection and debugging. Current release supports full reveal only; state-preserving restore is planned separately."
-	"changenote" "Initial release."
+	"appid"		"457140"
+	"contentfolder"		"/Users/liyux/Library/Application Support/unity.Klei.Oxygen Not Included/mods/Local/liyux.RevealStarMap"
+	"previewfile"		"/Users/liyux/Documents/Playground/reveal-starmap/preview.png"
+	"visibility"		"0"
+	"title"		"Reveal StarMap"
+	"description"		"Reveal or restore the entire Spaced Out starmap with a configurable hotkey. Press once to reveal everything, press again to restore the previous fog-of-war snapshot. Snapshot state is saved with the campaign so a save-load cycle can still roll back a temporary reveal.\n\n使用可配置快捷键显示或恢复整个 Spaced Out 星图。按一次全亮，再按一次恢复到 Reveal 前的迷雾状态。快照会随存档保存，重进后仍可把临时全亮回滚。"
+	"changenote"		"Added toggle restore and save-persisted fog snapshot."
+	"publishedfileid"		"3695952102"
 }

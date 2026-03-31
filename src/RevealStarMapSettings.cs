@@ -43,10 +43,6 @@ public sealed class RevealStarMapSettings
     [Option("Show Notification", "Show an in-game message when the starmap reveal is triggered.", "Behavior")]
     [JsonProperty]
     public bool ShowNotification { get; set; } = true;
-
-    [Option("Capture Snapshot For Future Restore", "Internally capture the current reveal state before forcing full reveal. This is groundwork for a later invert or restore release.", "Behavior")]
-    [JsonProperty]
-    public bool CaptureSnapshotBeforeReveal { get; set; } = true;
 }
 
 internal static class RevealStarMapSettingsManager
