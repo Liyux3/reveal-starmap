@@ -1,5 +1,7 @@
 using Newtonsoft.Json;
+using PeterHan.PLib;
 using PeterHan.PLib.Options;
+using RevealStarMap.Options;
 
 namespace RevealStarMap;
 
@@ -32,19 +34,19 @@ public enum RevealFunctionKey
 [ConfigFile("config.json", true, true)]
 public sealed class RevealStarMapSettings
 {
-    [Option("StarMap Hotkey Modifier", "Modifier key required before the starmap reveal trigger key.", "Input")]
+    [DynamicOption(typeof(RevealModifierOptionsEntry))]
     [JsonProperty]
     public RevealModifier Modifier { get; set; } = RevealModifier.Shift;
 
-    [Option("StarMap Hotkey Function Key", "Function key used to reveal the entire starmap.", "Input")]
+    [DynamicOption(typeof(RevealFunctionKeyOptionsEntry))]
     [JsonProperty]
     public RevealFunctionKey FunctionKey { get; set; } = RevealFunctionKey.F7;
 
-    [Option("Canvas Hotkey Modifier", "Modifier key required before the full live-canvas reveal trigger key.", "Input")]
+    [DynamicOption(typeof(RevealModifierOptionsEntry))]
     [JsonProperty]
     public RevealModifier CanvasModifier { get; set; } = RevealModifier.Shift;
 
-    [Option("Canvas Hotkey Function Key", "Function key used to reveal the full live simulation canvas across all worlds.", "Input")]
+    [DynamicOption(typeof(RevealFunctionKeyOptionsEntry))]
     [JsonProperty]
     public RevealFunctionKey CanvasFunctionKey { get; set; } = RevealFunctionKey.F8;
 
