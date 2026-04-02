@@ -15,6 +15,7 @@ internal static class GridRevealRuntime
     private static float cameraSnapshotMaxOrthographicSize;
     private static bool cameraSnapshotFreeCamera;
     private static bool cameraSnapshotIgnoreClusterFX;
+    private static int cameraSnapshotWorldId = -1;
 
     internal static void TriggerCanvasHotkeyAction()
     {
@@ -214,6 +215,7 @@ internal static class GridRevealRuntime
         cameraSnapshotMaxOrthographicSize = MaxOrthographicSizeRef(controller);
         cameraSnapshotFreeCamera = controller.FreeCameraEnabled;
         cameraSnapshotIgnoreClusterFX = controller.ignoreClusterFX;
+        cameraSnapshotWorldId = ClusterManager.Instance != null ? ClusterManager.Instance.activeWorldId : -1;
     }
 
     private static void RestoreCameraSnapshot()
@@ -233,10 +235,20 @@ internal static class GridRevealRuntime
 
             controller.EnableFreeCamera(cameraSnapshotFreeCamera);
             controller.SetMaxOrthographicSize(cameraSnapshotMaxOrthographicSize);
-            controller.SnapTo(cameraSnapshotPosition, cameraSnapshotOrthographicSize);
+            if (cameraSnapshotWorldId >= 0 &&
+                ClusterManager.Instance != null &&
+                ClusterManager.Instance.activeWorldId != cameraSnapshotWorldId)
+            {
+                controller.ActiveWorldStarWipe(cameraSnapshotWorldId, cameraSnapshotPosition, cameraSnapshotOrthographicSize);
+            }
+            else
+            {
+                controller.SnapTo(cameraSnapshotPosition, cameraSnapshotOrthographicSize);
+            }
         }
 
         cameraSnapshotValid = false;
+        cameraSnapshotWorldId = -1;
     }
 
     private static string GetWorldName(WorldContainer world)
@@ -252,6 +264,7 @@ internal static class GridRevealRuntime
             return;
         }
 
+        Debug.Log($"{RevealStarMapMod.Tag} {body}");
         Messenger.Instance?.QueueMessage(new RevealStarMapMessage(body));
     }
 }
