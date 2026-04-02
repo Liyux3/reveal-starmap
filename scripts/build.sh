@@ -6,6 +6,7 @@ BUILD_DIR="$ROOT_DIR/artifacts/build"
 DIST_DIR="$ROOT_DIR/dist/liyux.RevealStarMap"
 DOTNET_CLI_HOME_DIR="$ROOT_DIR/.tooling/dotnet-cli"
 DEFAULT_ONI_APP="/Users/liyux/Library/Application Support/Steam/steamapps/common/OxygenNotIncluded/OxygenNotIncluded.app"
+VENDORED_PLIB="$ROOT_DIR/vendor/PLib.dll"
 
 find_dotnet() {
   if [[ -n "${DOTNET_BIN:-}" && -x "${DOTNET_BIN}" ]]; then
@@ -27,6 +28,11 @@ find_dotnet() {
 }
 
 find_plib() {
+  if [[ -f "$VENDORED_PLIB" ]]; then
+    echo "$VENDORED_PLIB"
+    return 0
+  fi
+
   if [[ -n "${PLIB_DLL:-}" && -f "${PLIB_DLL}" ]]; then
     echo "${PLIB_DLL}"
     return 0
