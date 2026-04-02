@@ -89,7 +89,10 @@ export DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
 export DOTNET_CLI_TELEMETRY_OPTOUT=1
 export DOTNET_NOLOGO=1
 
-mapfile -t SOURCE_FILES < <(find "$ROOT_DIR/src" -name '*.cs' | sort)
+mapfile -t SOURCE_FILES < <(find "$ROOT_DIR/src" \
+  -path "$ROOT_DIR/src/obj" -prune -o \
+  -path "$ROOT_DIR/src/bin" -prune -o \
+  -name '*.cs' -print | sort)
 
 "$DOTNET_PATH" "$CSC_PATH" \
   -nologo \
@@ -113,7 +116,8 @@ mapfile -t SOURCE_FILES < <(find "$ROOT_DIR/src" -name '*.cs' | sort)
   -r:"$PLIB_DLL" \
   -r:"$ONI_MANAGED_PATH/UnityEngine.dll" \
   -r:"$ONI_MANAGED_PATH/UnityEngine.CoreModule.dll" \
-  -r:"$ONI_MANAGED_PATH/UnityEngine.InputLegacyModule.dll"
+  -r:"$ONI_MANAGED_PATH/UnityEngine.InputLegacyModule.dll" \
+  -r:"$ONI_MANAGED_PATH/Unity.TextMeshPro.dll"
 
 cp "$BUILD_DIR/RevealStarMap.dll" "$DIST_DIR/"
 

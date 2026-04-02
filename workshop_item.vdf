@@ -5,7 +5,7 @@
 	"previewfile"		"/Users/liyux/Documents/Playground/reveal-starmap/preview.png"
 	"visibility"		"0"
 	"title"		"Reveal StarMap"
-	"description"		"Reveal or restore the entire Spaced Out starmap with a configurable hotkey. Press once to reveal everything, press again to restore the previous fog-of-war snapshot. Snapshot state is saved with the campaign so a save-load cycle can still roll back a temporary reveal.\n\n使用可配置快捷键显示或恢复整个 Spaced Out 星图。按一次全亮，再按一次恢复到 Reveal 前的迷雾状态。快照会随存档保存，重进后仍可把临时全亮回滚。"
-	"changenote"		"Added toggle restore and save-persisted fog snapshot."
+	"description"		"Reveal or restore the entire Spaced Out starmap with a configurable hotkey. Press once to reveal everything, press again to restore the previous fog-of-war snapshot. A second configurable hotkey reveals the full live simulation canvas across all worlds for debug inspection. The asteroid world side-screen now also adds a Reveal World Map button that fully opens one selected world, then restores it on the next press. Starmap snapshots are saved with the campaign.\n\n使用可配置快捷键显示或恢复整个 Spaced Out 星图。按一次全亮，再按一次恢复到 Reveal 前的迷雾状态。现在还支持第二组可配置快捷键，用来显示整个 live simulation canvas，方便看所有世界在底层 2D 画布上的分布。星图右下角的小行星说明页也新增了 Reveal World Map 按钮，可以一键开对应世界，再按一次恢复。星图快照会随存档保存。"
+	"changenote"		"Added world-map reveal button and full-canvas reveal hotkey."
 	"publishedfileid"		"3695952102"
 }

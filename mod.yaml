@@ -1,3 +1,3 @@
 title: "Reveal StarMap"
-description: "Reveal the entire cluster starmap with a configurable hotkey. Built for quick inspection and debugging."
+description: "Reveal the starmap, one world map, or the full live simulation canvas with configurable debug controls."
 staticID: liyux.RevealStarMap
