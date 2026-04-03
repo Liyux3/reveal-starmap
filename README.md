@@ -21,12 +21,3 @@ Independent `Oxygen Not Included` mod for revealing the entire `Spaced Out` star
 
 1. `./scripts/bootstrap-dotnet.sh`
 2. `./scripts/install-local.sh`
-
-The built mod installs to:
-
-- `/Users/liyux/Library/Application Support/unity.Klei.Oxygen Not Included/mods/Local/liyux.RevealStarMap`
-
-
-## Preview source
-
-- Based on an official Steam store screenshot for `Oxygen Not Included: Spaced Out`.
