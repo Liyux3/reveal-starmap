@@ -38,7 +38,7 @@ internal static class RevealInput
         {
             RevealModifier.None => string.Empty,
             RevealModifier.Shift => "Shift + ",
-            RevealModifier.Control => "Control + ",
+            RevealModifier.Control => "Ctrl + ",
             RevealModifier.Alt => "Alt + ",
             RevealModifier.Command => "Command + ",
             _ => string.Empty

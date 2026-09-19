@@ -111,6 +111,7 @@ mapfile -t SOURCE_FILES < <(find "$ROOT_DIR/src" \
   -debug:portable \
   -optimize+ \
   -out:"$BUILD_DIR/RevealStarMap.dll" \
+  -resource:"$ROOT_DIR/translations/en.json",RevealStarMap.en.json \
   "${SOURCE_FILES[@]}" \
   -r:"$ONI_MANAGED_PATH/mscorlib.dll" \
   -r:"$ONI_MANAGED_PATH/System.dll" \
@@ -136,6 +137,7 @@ fi
 cp "$ROOT_DIR/mod.yaml" "$DIST_DIR/"
 cp "$ROOT_DIR/mod_info.yaml" "$DIST_DIR/"
 cp "$PLIB_DLL" "$DIST_DIR/"
+cp -R "$ROOT_DIR/translations" "$DIST_DIR/translations"
 
 echo "Built mod into:"
 echo "  $DIST_DIR"

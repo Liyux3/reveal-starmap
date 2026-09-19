@@ -8,22 +8,36 @@ namespace RevealStarMap.Patches;
 public static class ClusterGridWorldSideScreen_Patch
 {
     private const string RevealButtonName = "RevealStarMapWorldButton";
+    private static ClusterGridWorldSideScreen? activeScreen;
 
     private static readonly AccessTools.FieldRef<ClusterGridWorldSideScreen, AsteroidGridEntity> TargetEntityRef =
         AccessTools.FieldRefAccess<ClusterGridWorldSideScreen, AsteroidGridEntity>("targetEntity");
+
+    static ClusterGridWorldSideScreen_Patch()
+    {
+        RevealSessionCoordinator.PreviewChanged += RefreshActiveButton;
+        RevealStarMapSettingsManager.Changed += RefreshActiveButton;
+    }
+
+    private static void RefreshActiveButton()
+    {
+        if (activeScreen != null && activeScreen.viewButton != null) RefreshRevealButton(activeScreen);
+    }
 
     [HarmonyPatch("OnSpawn")]
     [HarmonyPostfix]
     public static void OnSpawnPostfix(ClusterGridWorldSideScreen __instance)
     {
-        EnsureRevealButton(__instance);
+        activeScreen = __instance;
+        RefreshActiveButton();
     }
 
     [HarmonyPatch(nameof(ClusterGridWorldSideScreen.SetTarget))]
     [HarmonyPostfix]
     public static void SetTargetPostfix(ClusterGridWorldSideScreen __instance)
     {
-        RefreshRevealButton(__instance);
+        activeScreen = __instance;
+        RefreshActiveButton();
     }
 
     private static KButton EnsureRevealButton(ClusterGridWorldSideScreen screen)
@@ -48,7 +62,7 @@ public static class ClusterGridWorldSideScreen_Patch
         cloneRect.SetSiblingIndex(templateRect.GetSiblingIndex() + 1);
         if (parent.GetComponent("VerticalLayoutGroup") == null && parent.GetComponent("GridLayoutGroup") == null)
         {
-            cloneRect.anchoredPosition = templateRect.anchoredPosition + new Vector2(0f, -52f);
+            cloneRect.anchoredPosition = templateRect.anchoredPosition + new Vector2(0f, -(templateRect.rect.height + 6f));
         }
 
         clone.onClick += delegate
@@ -80,28 +94,20 @@ public static class ClusterGridWorldSideScreen_Patch
         }
 
         button.isInteractable = hasWorld;
-        SetButtonText(button, isRestore ? "End World Preview" : "Preview World Map");
+        SetButtonText(button, RevealText.Get(isRestore ? "world.end" : "world.preview"));
 
         if (tooltip != null)
         {
-            tooltip.SetSimpleTooltip(isRestore
-                ? "End the visual preview. Exploration and simulation state remain unchanged."
-                : "Preview the complete world map without changing fog, discovery, or simulation state.");
+            tooltip.SetSimpleTooltip(RevealText.Get(!hasWorld ? "world.unavailable" :
+                isRestore ? "world.end.hint" : "world.preview.hint"));
         }
     }
 
     private static void SetButtonText(KButton button, string text)
     {
-        Component[] components = button.GetComponentsInChildren<Component>(includeInactive: true);
-        foreach (Component component in components)
-        {
-            if (component.GetType().Name != "LocText")
-            {
-                continue;
-            }
-
-            AccessTools.Property(component.GetType(), "text")?.SetValue(component, text, null);
-            return;
-        }
+        LocText? label = button.GetComponentInChildren<LocText>(includeInactive: true);
+        if (label == null) return;
+        label.key = string.Empty;
+        label.text = text;
     }
 }

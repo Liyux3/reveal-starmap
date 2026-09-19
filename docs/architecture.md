@@ -16,8 +16,10 @@ while a preview is active. Camera bounds apply to the active world or full canva
 ## Permanent Survey
 
 `RevealStarMapSettings.StarMapAction` defaults to TemporaryPreview. Saving options only
-updates configuration. `RevealStarMapRuntime` requests a native confirmation when the
-hotkey is used in PermanentSurvey mode, guarded against duplicate dialogs and save changes.
+updates configuration. `RevealStarMapRuntime` requests native confirmation before a save's
+first survey, or every time if configured, guarded against duplicate dialogs and save changes.
+`RevealSnapshotState.permanentSurveyConfirmed` is set only after successful commit. New saves
+and canceled/failed confirmations retain the initial confirmation requirement.
 The confirmed cell list is fixed when the dialog opens; analysis points are re-read at
 confirmation to preserve research earned in the meantime.
 
@@ -38,5 +40,13 @@ after the dictionary commit. No temporary navigation bypass is used.
 PLib 4.21 is vendored. Custom enum entries return actual enums on save. Dropdown minimum
 widths use layout units, avoiding the older `SetMinWidthInCharacters` font-metric dependency.
 `IOptions.OnOptionsChanged` applies settings immediately; unknown enums select safe defaults.
-Input respects modal screens, text fields and exact modifiers. `RevealText` localizes the
-new behavior selector and confirmation using the game's Chinese/English locale.
+Input respects modal screens, text fields and exact modifiers. Settings revisions trigger
+actionable shortcut-conflict feedback; mode and preference events refresh the native world
+button's label and tooltip. General feedback defaults to first-use only and has EveryAction
+and Off preferences. Hidden legacy ShowNotification JSON is retained for opt-out migration.
+
+`RevealText` loads keyed catalogs for English, Simplified Chinese and Traditional Chinese.
+English is embedded in the DLL as the fallback. Mod language can follow the game or be
+overridden; standard PLib window controls follow the game. New notification objects store
+text keys and arguments so their bodies follow language changes; legacy bodies still load.
+See [localization](localization.md) for catalog rules.

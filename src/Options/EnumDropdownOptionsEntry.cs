@@ -50,6 +50,12 @@ internal abstract class EnumDropdownOptionsEntry<TEnum> : OptionsEntry where TEn
         }
     }
 
+    protected static IEnumerable<(string Title, string Tooltip, TEnum Value)> BuildEnumChoices()
+    {
+        foreach (TEnum value in Enum.GetValues(typeof(TEnum)))
+            yield return (RevealText.Get("choice." + value), string.Empty, value);
+    }
+
     protected EnumDropdownOptionsEntry(string field, string title, string tooltip, string category, IEnumerable<(string Title, string Tooltip, TEnum Value)> options)
         : base(field, new OptionAttribute(title, tooltip, category))
     {
@@ -87,7 +93,8 @@ internal abstract class EnumDropdownOptionsEntry<TEnum> : OptionsEntry where TEn
             EntryColor = PUITuning.Colors.ButtonBlueStyle,
             TextStyle = PUITuning.Fonts.TextLightStyle,
             // Layout units avoid PLib font-metric calls tied to specific TextMeshPro releases.
-            MinWidth = Math.Max(100, widestLabel * 14),
+            MinWidth = Math.Max(120, widestLabel * 12),
+            MaxRowsShown = 8,
             OnOptionSelected = (_, choice) =>
             {
                 if (choice != null)

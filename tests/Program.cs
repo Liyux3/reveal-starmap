@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Runtime.Loader;
+using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using RevealStarMap;
 
@@ -102,6 +103,47 @@ var manager = mod.GetType("RevealStarMap.RevealStarMapSettingsManager", true)!;
 var activeSettings = (RevealStarMapSettings)manager.GetProperty("Current", BindingFlags.NonPublic | BindingFlags.Static)!.GetValue(null)!;
 Check(activeSettings.StarMapAction == StarMapAction.PermanentSurvey,
     "Saving options updates the active session immediately without loading a save or revealing cells");
+
+var legacyMuted = JsonConvert.DeserializeObject<RevealStarMapSettings>("{\"ShowNotification\":false}")!;
+Check(legacyMuted.Feedback == ActionFeedback.Off, "Old notification opt-out is preserved");
+var explicitFeedback = JsonConvert.DeserializeObject<RevealStarMapSettings>("{\"Feedback\":1,\"ShowNotification\":false}")!;
+Check(explicitFeedback.Feedback == ActionFeedback.EveryAction, "Explicit new feedback preference wins regardless of JSON property order");
+var confirmation = typeof(RevealStarMapSettings).GetMethod("RequiresSurveyConfirmation", BindingFlags.NonPublic | BindingFlags.Instance)!;
+bool NeedsConfirmation(bool confirmed) => (bool)confirmation.Invoke(defaults, new object[] { confirmed })!;
+Check(NeedsConfirmation(false) && !NeedsConfirmation(true), "Default survey consent is required once per save");
+defaults.SurveyConfirmation = SurveyConfirmation.EveryTime;
+Check(NeedsConfirmation(false) && NeedsConfirmation(true), "Always-confirm preference applies even to previously acknowledged saves");
+
+var textType = mod.GetType("RevealStarMap.RevealText", true)!;
+var resolve = textType.GetMethod("ResolveLanguage", BindingFlags.NonPublic | BindingFlags.Static)!;
+string Resolve(UiLanguage preference, string? code) => (string)resolve.Invoke(null, new object?[] { preference, code })!;
+Check(Resolve(UiLanguage.Automatic, "zh_Hant_HK") == "zh-TW" &&
+    Resolve(UiLanguage.Automatic, "zh-CN") == "zh-CN" && Resolve(UiLanguage.English, "zh") == "en",
+    "Chinese locale variants and explicit language override resolve consistently");
+Check(Resolve(UiLanguage.Automatic, "../../test") == "en", "Locale names stay inside the translation directory");
+var getText = textType.GetMethod("GetForLanguage", BindingFlags.NonPublic | BindingFlags.Static)!;
+string Text(string key, string code) => (string)getText.Invoke(null, new object[] { key, code })!;
+var translationDirectory = Path.Combine(AppContext.BaseDirectory, "translations");
+var english = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(Path.Combine(translationDirectory, "en.json")))!;
+string Slots(string text) => string.Join(",", Regex.Matches(text, @"\{\d+\}").Select(m => m.Value).OrderBy(s => s));
+foreach (string code in new[] { "en", "zh-CN", "zh-TW" })
+{
+    var catalog = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(Path.Combine(translationDirectory, code + ".json")))!;
+    Check(english.Keys.OrderBy(k => k).SequenceEqual(catalog.Keys.OrderBy(k => k)) &&
+        catalog.All(p => !string.IsNullOrWhiteSpace(p.Value) && Slots(p.Value) == Slots(english[p.Key])),
+        code + " catalog is complete with matching format placeholders");
+    Check(catalog.All(p => Text(p.Key, code) == p.Value), code + " shipped catalog loads with exact text");
+}
+Check(Text("world.preview", "missing-locale") == english["world.preview"], "Missing translations fall back to embedded English");
+var languageEntryType = mod.GetType("RevealStarMap.Options.LanguageOptionsEntry", true)!;
+var languageEntry = Activator.CreateInstance(languageEntryType, "Language")!;
+languageEntryType.GetProperty("Value")!.SetValue(languageEntry, "TraditionalChinese");
+languageEntryType.GetMethod("WriteTo")!.Invoke(languageEntry, new object[] { defaults });
+Check(defaults.Language == UiLanguage.TraditionalChinese, "Language preference uses real enum write-back");
+defaults.OnOptionsChanged();
+var chineseEntry = Activator.CreateInstance(entryType, "StarMapAction")!;
+Check((string)entryType.GetProperty("Title")!.GetValue(chineseEntry)! == "快捷鍵行為",
+    "Reopened options use the saved Traditional Chinese language");
 
 Console.WriteLine($"{checks} managed integration checks passed. Unity rendering, dialogs and live rocket flight require in-game testing.");
 record SurveyCell(int R, int Q, float Points);

@@ -11,7 +11,7 @@ In **Mod Options > Star Map Action**, choose:
 | Action | What happens | Rocket navigation | Reversible |
 | --- | --- | --- | --- |
 | Temporary Preview (default) | Displays the full starmap while preserving actual analysis | Normal analysis requirements | Press the hotkey again |
-| Permanent Survey | The hotkey asks for confirmation, then analyzes existing starmap cells in this save | Uses real analyzed cells; fuel, range and landing requirements still apply | Load a save from before confirmation |
+| Permanent Survey | The hotkey analyzes existing cells after the required confirmation | Uses real analyzed cells; fuel, range and landing requirements still apply | Load an earlier save |
 
 Changing the setting or loading a save never performs a permanent survey. Canceling
 the confirmation leaves exploration untouched. After surveying, removing the mod or
@@ -20,6 +20,23 @@ another explicit survey. An active preview can always be ended with the same key
 including after changing the option.
 
 World and full-canvas previews remain temporary in both modes.
+
+## Preferences
+
+Options are grouped into **Starmap**, **Canvas**, and **Preferences**. Ordinary play
+uses the configured shortcut directly; selecting a mode is a one-time preference.
+
+- **Language:** follows the game by default; English, Simplified Chinese and Traditional Chinese overrides are available. Save and reopen options to update their labels.
+- **Confirm permanent survey:** once per save by default; each colony's first successful survey records its consent. Later expansions use the same preference. Select Every time to require confirmation for each operation.
+- **Action notifications:** first use only by default; Every action and Off are available. Existing notification opt-outs are preserved. Errors and the first permanent confirmation remain visible.
+
+An already analyzed map produces no modal dialog. Its routine feedback follows the
+notification preference. World details use a single **Preview map / End preview**
+button that updates with the current mode and language. Existing action messages
+also follow language changes.
+
+Translations are keyed JSON catalogs; [translation guidance](docs/localization.md)
+describes fallback behavior and adding a language.
 
 ### Achievements and Research
 
@@ -36,7 +53,7 @@ real analysis state and ongoing research progress.
 ## Current Scope
 
 - configurable hotkey through PLib options
-- configurable preview/survey behavior with English and Chinese confirmation text
+- consistent English, Simplified Chinese and Traditional Chinese labels and messages
 - instant full starmap preview without changing exploration progress
 - second press ends the preview and returns to the normal fog-of-war view
 - a world side-screen button previews one selected asteroid without triggering discovery or hidden spawns
@@ -44,14 +61,14 @@ real analysis state and ongoing research progress.
 - legacy snapshots from older releases are restored once and migrated to the render-only preview model
 - only one preview mode is active at a time, with camera state restored after world and canvas previews
 - world and canvas previews end safely when a save is reloaded because camera snapshots are session-local
-- one introductory notification per save, then silent preview toggles; permanent survey always asks for confirmation
+- first-use feedback and once-per-save survey confirmation by default, configurable in Preferences
 
 ## Default Hotkey
 
 - `Shift + F7`, press once to preview the starmap, press again to end the preview
 - `Shift + F8`, press once to preview the full live canvas, press again to end the preview
 
-In Permanent Survey mode, `Shift + F7` opens the analysis confirmation instead.
+In Permanent Survey mode, `Shift + F7` performs analysis, asking according to the confirmation preference.
 All bindings remain configurable. Settings apply when confirmed without restarting.
 Hotkeys are ignored in modal dialogs and text fields, and modifier matching is exact.
 

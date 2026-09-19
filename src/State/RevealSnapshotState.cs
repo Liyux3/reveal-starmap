@@ -17,6 +17,13 @@ public sealed class RevealSnapshotState : KMonoBehaviour
     private bool notificationShown;
 
     [Serialize]
+    private bool permanentSurveyConfirmed;
+
+    internal bool PermanentSurveyConfirmed => permanentSurveyConfirmed;
+
+    internal void MarkPermanentSurveyConfirmed() => permanentSurveyConfirmed = true;
+
+    [Serialize]
     private int cameraSafetyVersion;
 
     [Serialize]

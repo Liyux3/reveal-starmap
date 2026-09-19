@@ -21,6 +21,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="../translations/en.json" LogicalName="RevealStarMap.en.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="mscorlib">
       <HintPath>$(OniManagedPath)/mscorlib.dll</HintPath>
       <Private>false</Private>

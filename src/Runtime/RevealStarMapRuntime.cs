@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using RevealStarMap.State;
 
 namespace RevealStarMap.Runtime;
 
@@ -14,7 +15,7 @@ internal static class RevealStarMapRuntime
         if (SaveGame.Instance == null || Game.Instance == null || Game.Instance.IsLoading() || DialogOpen)
             return;
 
-        // An already active preview can always be closed, even after changing the setting.
+        // An active preview always closes first, including after a preference change.
         if (RevealSessionCoordinator.IsStarMapPreviewActive ||
             RevealStarMapSettingsManager.Current.StarMapAction == StarMapAction.TemporaryPreview)
         {
@@ -35,9 +36,10 @@ internal static class RevealStarMapRuntime
     {
         SaveGame owner = SaveGame.Instance;
         ClusterGrid grid = ClusterGrid.Instance;
+        var state = owner.GetComponent<RevealSnapshotState>();
         var fog = RevealSnapshotStore.GetFog();
-        if (grid == null || fog == null || ScreenPrefabs.Instance == null || GameScreenManager.Instance == null)
-            return;
+        if (grid == null || fog == null || state == null ||
+            ScreenPrefabs.Instance == null || GameScreenManager.Instance == null) return;
 
         var cells = new List<AxialI>();
         foreach (AxialI cell in grid.cellContents.Keys)
@@ -46,42 +48,51 @@ internal static class RevealStarMapRuntime
         RevealSnapshotStore.PrepareSurvey(fog, cells, out int count);
         if (count == 0)
         {
-            ShowDialog(RevealText.AlreadySurveyed,
-                () => { }, "OK");
+            RevealSessionCoordinator.Notify("status.survey.empty");
             return;
         }
 
-        ShowDialog(RevealText.ConfirmSurvey(count), () =>
-            {
-                if (owner == null || SaveGame.Instance != owner || ClusterGrid.Instance != grid ||
-                    !ReferenceEquals(RevealSnapshotStore.GetFog(), fog) || Game.Instance == null ||
-                    Game.Instance.IsLoading() ||
-                    RevealStarMapSettingsManager.Current.StarMapAction != StarMapAction.PermanentSurvey)
-                    return;
+        void PerformSurvey()
+        {
+            if (owner == null || SaveGame.Instance != owner || ClusterGrid.Instance != grid ||
+                !ReferenceEquals(RevealSnapshotStore.GetFog(), fog) || Game.Instance == null ||
+                Game.Instance.IsLoading() ||
+                RevealStarMapSettingsManager.Current.StarMapAction != StarMapAction.PermanentSurvey) return;
 
-                // Rebase on current research progress; survey only the cells confirmed in the dialog.
-                cells.RemoveAll(cell => !grid.IsValidCell(cell));
-                var surveyed = RevealSnapshotStore.PrepareSurvey(fog, cells, out int changed);
-                if (changed == 0) return;
-                try
-                {
-                    RevealSnapshotStore.CommitSurvey(fog, surveyed);
-                    RevealSessionCoordinator.Notify($"Permanently analyzed {changed} starmap cells. " +
-                        "Rocket routes use the saved analysis; fuel, range and landing rules still apply.");
-                }
-                catch (Exception exception)
-                {
-                    Debug.LogError($"{RevealStarMapMod.Tag} Survey points were applied, but a reveal-event or notification callback failed. {exception}");
-                    ShowDialog(RevealText.Pick(
-                        "Analysis points were applied, but a mod's notification or refresh callback failed. Check Player.log before continuing; reload the earlier save to revert this operation.",
-                        "分析进度已应用，但某个模组的通知或刷新回调发生错误。请先检查 Player.log；需要回退时请载入操作前的存档。"),
-                        () => { }, "OK");
-                }
-                RevealSnapshotStore.RefreshClusterMap();
-            }, RevealText.ConfirmLabel);
+            // Keep consent scoped to the offered cells and rebase on current research progress.
+            cells.RemoveAll(cell => !grid.IsValidCell(cell));
+            var surveyed = RevealSnapshotStore.PrepareSurvey(fog, cells, out int changed);
+            if (changed == 0) return;
+            try
+            {
+                RevealSnapshotStore.CommitSurvey(fog, surveyed);
+                state.MarkPermanentSurveyConfirmed();
+                RevealSessionCoordinator.Notify("status.survey.done", changed);
+            }
+            catch (Exception exception)
+            {
+                Debug.LogError($"{RevealStarMapMod.Tag} Survey applied; a refresh callback failed. {exception}");
+                ShowDialog(RevealText.Get("error.callback"), () => { },
+                    RevealText.Get("error.title"), RevealText.Get("button.ok"), false);
+            }
+            RevealSnapshotStore.RefreshClusterMap();
+        }
+
+        var settings = RevealStarMapSettingsManager.Current;
+        if (!settings.RequiresSurveyConfirmation(state.PermanentSurveyConfirmed))
+        {
+            PerformSurvey();
+            return;
+        }
+
+        string message = RevealText.Format("survey.body", count);
+        if (settings.SurveyConfirmation == SurveyConfirmation.OncePerSave)
+            message += "\n\n" + RevealText.Get("survey.consent");
+        ShowDialog(message, PerformSurvey, RevealText.Get("survey.title"), RevealText.Get("survey.confirm"));
     }
 
-    private static void ShowDialog(string message, System.Action onConfirm, string confirmText)
+    private static void ShowDialog(string message, System.Action onConfirm, string title,
+        string confirmText, bool cancellable = true)
     {
         var created = (ConfirmDialogScreen)GameScreenManager.Instance.StartScreen(
             ScreenPrefabs.Instance.ConfirmDialogScreen.gameObject);
@@ -93,6 +104,7 @@ internal static class RevealStarMapRuntime
             if (used) return;
             used = true;
             onConfirm();
-        }, () => { used = true; }, title_text: "Reveal StarMap", confirm_text: confirmText);
+        }, cancellable ? () => { used = true; } : (System.Action?)null,
+            title_text: title, confirm_text: confirmText, cancel_text: RevealText.Get("button.cancel"));
     }
 }

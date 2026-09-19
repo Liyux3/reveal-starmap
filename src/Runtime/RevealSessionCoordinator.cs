@@ -31,6 +31,8 @@ internal static class RevealSessionCoordinator
 
     internal static bool IsCanvasPreviewActive => ActiveMode == RevealPreviewMode.Canvas;
 
+    internal static event System.Action? PreviewChanged;
+
     internal static bool IsWorldPreviewActive(int worldId)
     {
         return ActiveMode == RevealPreviewMode.World && ActiveWorldId == worldId;
@@ -96,13 +98,12 @@ internal static class RevealSessionCoordinator
     {
         if (ActiveMode == RevealPreviewMode.StarMap)
         {
-            EndPreview("Star map preview ended. Exploration progress was unchanged.");
+            EndPreview("status.star.off");
             return;
         }
 
         BeginPreview(RevealPreviewMode.StarMap, -1);
-        Notify($"Star map preview active. Press {RevealInput.FormatHotkey(RevealStarMapSettingsManager.Current.Modifier, RevealStarMapSettingsManager.Current.FunctionKey)} again to end it. " +
-            "Rocket routes still require analysis. Choose Permanent Survey in Mod Options to analyze the starmap for navigation.");
+        Notify("status.star.on", RevealInput.FormatHotkey(RevealStarMapSettingsManager.Current.Modifier, RevealStarMapSettingsManager.Current.FunctionKey));
     }
 
     internal static void ToggleCanvas()
@@ -114,12 +115,12 @@ internal static class RevealSessionCoordinator
 
         if (ActiveMode == RevealPreviewMode.Canvas)
         {
-            EndPreview("Canvas preview ended. Fog and simulation state were unchanged.");
+            EndPreview("status.canvas.off");
             return;
         }
 
         BeginPreview(RevealPreviewMode.Canvas, -1);
-        Notify($"Full live-canvas preview active. Press {RevealInput.FormatHotkey(RevealStarMapSettingsManager.Current.CanvasModifier, RevealStarMapSettingsManager.Current.CanvasFunctionKey)} again to end it.");
+        Notify("status.canvas.on", RevealInput.FormatHotkey(RevealStarMapSettingsManager.Current.CanvasModifier, RevealStarMapSettingsManager.Current.CanvasFunctionKey));
     }
 
     internal static void ToggleWorld(WorldContainer world)
@@ -132,13 +133,13 @@ internal static class RevealSessionCoordinator
         string name = GridRevealRuntime.GetWorldName(world);
         if (IsWorldPreviewActive(world.id))
         {
-            EndPreview($"World preview ended for {name}. Fog and discovery state were unchanged.");
+            EndPreview("status.world.off");
             return;
         }
 
         BeginPreview(RevealPreviewMode.World, world.id);
         GridRevealRuntime.FocusWorld(world);
-        Notify($"World preview active for {name}. Use the same button again to end it.");
+        Notify("status.world.on", name);
     }
 
     internal static void ResetRuntimeState()
@@ -282,6 +283,7 @@ internal static class RevealSessionCoordinator
     {
         Volatile.Write(ref activeWorldId, mode == RevealPreviewMode.World ? worldId : -1);
         Volatile.Write(ref activeMode, (int)mode);
+        PreviewChanged?.Invoke();
     }
 
     private static void FocusCanvas()
@@ -382,14 +384,23 @@ internal static class RevealSessionCoordinator
         return SaveGame.Instance == null ? null : SaveGame.Instance.GetComponent<RevealSnapshotState>();
     }
 
-    internal static void Notify(string body)
+    internal static void Notify(string key, params object[] values)
     {
+        string body = RevealText.Format(key, values);
         Debug.Log($"{RevealStarMapMod.Tag} {body}");
         RevealSnapshotState? state = GetState();
-        if (RevealStarMapSettingsManager.Current.ShowNotification && state != null && state.TryMarkNotificationShown())
-        {
-            Messenger.Instance?.QueueMessage(new RevealStarMapMessage(body));
-        }
+        if (state == null || Messenger.Instance == null) return;
+        ActionFeedback feedback = RevealStarMapSettingsManager.Current.Feedback;
+        if (feedback == ActionFeedback.Off) return;
+        if (feedback == ActionFeedback.FirstUseOnly && !state.TryMarkNotificationShown()) return;
+        state.TryMarkNotificationShown();
+        Messenger.Instance.QueueMessage(new RevealStarMapMessage(key, values));
+    }
+
+    internal static void Warn(string key, params object[] values)
+    {
+        Debug.LogWarning($"{RevealStarMapMod.Tag} {RevealText.Format(key, values)}");
+        Messenger.Instance?.QueueMessage(new RevealStarMapMessage(key, values));
     }
 
     private static void ConstrainCameraToActiveWorld()

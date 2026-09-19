@@ -1,3 +1,4 @@
+using System;
 using KSerialization;
 
 namespace RevealStarMap.State;
@@ -6,11 +7,18 @@ namespace RevealStarMap.State;
 public sealed class RevealStarMapMessage : Message
 {
     [Serialize]
-    private readonly string body;
+    private readonly string body = string.Empty;
 
-    public RevealStarMapMessage(string body)
+    [Serialize]
+    private readonly string textKey = string.Empty;
+
+    [Serialize]
+    private readonly string[] arguments = Array.Empty<string>();
+
+    public RevealStarMapMessage(string key, object[] values)
     {
-        this.body = body;
+        textKey = key;
+        arguments = Array.ConvertAll(values, value => value?.ToString() ?? string.Empty);
     }
 
     public override string GetTitle()
@@ -25,12 +33,12 @@ public sealed class RevealStarMapMessage : Message
 
     public override string GetMessageBody()
     {
-        return body;
+        return string.IsNullOrEmpty(textKey) ? body : RevealText.Format(textKey, arguments ?? Array.Empty<string>());
     }
 
     public override string GetTooltip()
     {
-        return body;
+        return GetMessageBody();
     }
 
     public override bool ShowDialog()

@@ -17,10 +17,12 @@ Primary distribution points:
 Current user-facing feature set:
 
 - full starmap reveal and restore
-- asteroid-side-screen `Reveal World Map` button
+- asteroid-side-screen `Preview map` / `End preview` button
 - full live simulation canvas reveal and restore
 - configurable hotkeys in `Mod Options`
 - default reversible preview; optional permanent analysis for real rocket navigation
+- preferences for language, feedback and survey confirmation; default once per save
+- complete English, Simplified Chinese and Traditional Chinese catalogs
 
 ## Architecture Snapshot
 
@@ -33,7 +35,7 @@ Key runtime layers:
 - `src/Runtime/GridRevealRuntime.cs` focuses worlds; terrain preview is handled by the fog texture patch.
 - `src/Runtime/GridRevealSnapshotStore.cs` restores legacy grid snapshots once.
 - `src/Patches/ClusterGridWorldSideScreen_Patch.cs`
-  injects the `Reveal World Map` button into asteroid details
+  injects and refreshes the native preview button in asteroid details
 - `src/Runtime/RevealStarMapController.cs`
   routes configured hotkeys for starmap and canvas actions
 

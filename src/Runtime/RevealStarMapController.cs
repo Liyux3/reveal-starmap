@@ -5,6 +5,8 @@ namespace RevealStarMap.Runtime;
 internal sealed class RevealStarMapController : KMonoBehaviour
 {
     private bool initialized;
+    private int settingsRevision = -1;
+    private string? reportedConflict;
 
     protected override void OnSpawn()
     {
@@ -27,6 +29,17 @@ internal sealed class RevealStarMapController : KMonoBehaviour
         }
 
         RevealSessionCoordinator.TryCompletePendingCameraSafetyMigration();
+
+        if (settingsRevision != RevealStarMapSettingsManager.Revision)
+        {
+            settingsRevision = RevealStarMapSettingsManager.Revision;
+            string? conflict = RevealStarMapSettingsManager.HotkeysConflict
+                ? RevealInput.FormatHotkey(RevealStarMapSettingsManager.Current.Modifier, RevealStarMapSettingsManager.Current.FunctionKey)
+                : null;
+            if (conflict != null && conflict != reportedConflict)
+                RevealSessionCoordinator.Warn("error.conflict", conflict);
+            reportedConflict = conflict;
+        }
 
         if (SaveGame.Instance == null || !DlcManager.FeatureClusterSpaceEnabled())
         {
@@ -64,10 +77,5 @@ internal sealed class RevealStarMapController : KMonoBehaviour
         RevealStarMapSettingsManager.Reload();
         RevealSessionCoordinator.InitializeAndMigrate();
 
-        if (RevealStarMapSettingsManager.HotkeysConflict)
-        {
-            RevealStarMapSettings settings = RevealStarMapSettingsManager.Current;
-            RevealSessionCoordinator.Notify($"Hotkey conflict: {RevealInput.FormatHotkey(settings.Modifier, settings.FunctionKey)} is assigned to both actions. Canvas preview stays disabled until one binding is changed.");
-        }
     }
 }

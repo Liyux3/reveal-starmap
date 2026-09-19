@@ -33,3 +33,21 @@ The candidate has not been uploaded. Steam remains on 0.3.1.0.
 
 Steam Remote Storage reports `banned=0` and `visibility=0` (public). The earlier removed/
 incompatible claim came from hidden page templates and is withdrawn.
+
+## 2026-09-19: Interaction and Language Polish
+
+Grouped settings into Starmap, Canvas and Preferences. Added a default game-language
+preference with English, Simplified Chinese and Traditional Chinese catalogs. Reused
+enum choice construction and centralized all mod-provided user-facing text. Native
+buttons keep game styling and measured spacing; mode/settings changes refresh their labels.
+
+Permanent survey now defaults to one confirmation per save, recorded after successful
+commit, with an Every time preference. Already surveyed maps no longer open a modal.
+Routine feedback defaults to first use; Every action and Off are configurable. Old muted
+configs remain muted, and new message bodies follow language changes. Error confirmations
+use a single OK action. Long explanations moved into settings tooltips and docs.
+
+Final module validation: 31 managed checks passed against the shipped DLL, actual PLib
+write-back and all three catalogs. The native capture retry still returned -3811. Unity
+dialog layout, in-game clicking, native save/reload and flight validation remain pending.
+Candidate remains 0.4.0.0; Workshop remains 0.3.1.0.

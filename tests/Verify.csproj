@@ -7,6 +7,7 @@
     <OniManagedPath Condition="'$(OniManagedPath)' == ''">$(HOME)/Library/Application Support/Steam/steamapps/common/OxygenNotIncluded/OxygenNotIncluded.app/Contents/Resources/Data/Managed</OniManagedPath>
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="../translations/*.json" Link="translations/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     <!-- Test-host shim for ONI's .NET Framework Newtonsoft.Json assembly. Never shipped in the mod. -->
     <PackageReference Include="System.Security.Permissions" Version="8.0.0" />
     <Reference Include="RevealStarMap" HintPath="../dist/liyux.RevealStarMap/RevealStarMap.dll" />
