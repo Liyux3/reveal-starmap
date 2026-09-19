@@ -51,3 +51,28 @@ Final module validation: 31 managed checks passed against the shipped DLL, actua
 write-back and all three catalogs. The native capture retry still returned -3811. Unity
 dialog layout, in-game clicking, native save/reload and flight validation remain pending.
 Candidate remains 0.4.0.0; Workshop remains 0.3.1.0.
+
+## 2026-09-19: Global Preferences and Packaging
+
+User requested one mod-level configuration across campaigns with minimal interruption.
+Removed per-save consent and first-use notifications, along with their stored booleans.
+All behavior preferences use the shared mod config. Defaults are reversible preview,
+game language and silent operation. Permanent Survey is an explicit config choice; its
+shortcut immediately analyzes the current map. Ordinary preview text no longer discusses
+navigation analysis. Errors still receive actionable feedback.
+
+Removed redundant confirmation settings, dialogs and translation keys. Retired draft
+notification values migrate to Off while preserving shortcuts and explicit EveryAction.
+Thirty-three managed checks passed, including the actual game's KSerialization mapping
+skipping removed bool fields without losing retained preview state. Packaged version
+remains 0.4.0.0 and is not yet uploaded; Unity visual/flight validation remains outstanding.
+
+Native startup check: launched through Steam on U59-744825 with the candidate installed.
+Player.log recorded RevealStarMap.dll loading and `[Reveal StarMap] Loaded.`; main menu
+rendered successfully. System full-display capture worked after window capture failed.
+The update notice closed with Escape, but automated mouse clicks did not open the Mods
+page, so option-menu interaction is still unverified. No save was entered or modified.
+Quit gracefully via the app's Quit event. Restored the subscribed 0.3.1.0 files and Reveal
+enablement, verified all mods' enabled/DLC arrays against the pre-test backup, and verified
+that the user's config remained unchanged. Steam's own updater updated two other subscribed
+mods during startup; their new files and metadata were left intact.

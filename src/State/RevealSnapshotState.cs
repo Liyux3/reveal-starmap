@@ -14,16 +14,6 @@ public sealed class RevealSnapshotState : KMonoBehaviour
     private int previewWorldId = -1;
 
     [Serialize]
-    private bool notificationShown;
-
-    [Serialize]
-    private bool permanentSurveyConfirmed;
-
-    internal bool PermanentSurveyConfirmed => permanentSurveyConfirmed;
-
-    internal void MarkPermanentSurveyConfirmed() => permanentSurveyConfirmed = true;
-
-    [Serialize]
     private int cameraSafetyVersion;
 
     [Serialize]
@@ -143,17 +133,6 @@ public sealed class RevealSnapshotState : KMonoBehaviour
     {
         previewMode = (int)mode;
         previewWorldId = mode == RevealPreviewMode.World ? worldId : -1;
-    }
-
-    internal bool TryMarkNotificationShown()
-    {
-        if (notificationShown)
-        {
-            return false;
-        }
-
-        notificationShown = true;
-        return true;
     }
 
     internal void MarkCameraSafetyVersion(int version)

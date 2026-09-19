@@ -51,7 +51,7 @@ Check(afterGrowth.Changed == 1 && afterGrowth.Map[addedLater] == 100f,
     "Later cluster growth is surveyed only by a subsequent explicit operation");
 original[partial] = 250f;
 Check(Prepare(original, cells).Map[partial] == 250f,
-    "Confirmation rebases on research completed while the dialog was open");
+    "A new survey preserves research earned since the earlier preparation");
 Check(Prepare(original, Array.Empty<AxialI>()).Changed == 0, "Empty clusters leave fog unchanged");
 try
 {
@@ -108,11 +108,32 @@ var legacyMuted = JsonConvert.DeserializeObject<RevealStarMapSettings>("{\"ShowN
 Check(legacyMuted.Feedback == ActionFeedback.Off, "Old notification opt-out is preserved");
 var explicitFeedback = JsonConvert.DeserializeObject<RevealStarMapSettings>("{\"Feedback\":1,\"ShowNotification\":false}")!;
 Check(explicitFeedback.Feedback == ActionFeedback.EveryAction, "Explicit new feedback preference wins regardless of JSON property order");
-var confirmation = typeof(RevealStarMapSettings).GetMethod("RequiresSurveyConfirmation", BindingFlags.NonPublic | BindingFlags.Instance)!;
-bool NeedsConfirmation(bool confirmed) => (bool)confirmation.Invoke(defaults, new object[] { confirmed })!;
-Check(NeedsConfirmation(false) && !NeedsConfirmation(true), "Default survey consent is required once per save");
-defaults.SurveyConfirmation = SurveyConfirmation.EveryTime;
-Check(NeedsConfirmation(false) && NeedsConfirmation(true), "Always-confirm preference applies even to previously acknowledged saves");
+Check(new RevealStarMapSettings().Feedback == ActionFeedback.Off &&
+    new RevealStarMapSettings().StarMapAction == StarMapAction.TemporaryPreview,
+    "Default behavior is silent preview for every save");
+var oldDraft = JsonConvert.DeserializeObject<RevealStarMapSettings>(
+    "{\"Feedback\":0,\"SurveyConfirmation\":1,\"Modifier\":3,\"FunctionKey\":9}")!;
+Check(oldDraft.Feedback == ActionFeedback.Off && oldDraft.Modifier == RevealModifier.Alt &&
+    oldDraft.FunctionKey == RevealFunctionKey.F9, "Old per-save preferences retire without changing shortcuts");
+string globalJson = JsonConvert.SerializeObject(oldDraft);
+Check(!globalJson.Contains("SurveyConfirmation") && !globalJson.Contains("ShowNotification"),
+    "Settings serialize only the current global preferences");
+
+// Exercise the game's schema migration when the unused per-save booleans disappear.
+var oldTemplate = new KSerialization.SerializationTemplate(typeof(LegacyPreferences));
+var newTemplate = new KSerialization.SerializationTemplate(typeof(CurrentPreviewState));
+using var schemaBytes = new MemoryStream();
+using var dataBytes = new MemoryStream();
+using (var writer = new BinaryWriter(schemaBytes, System.Text.Encoding.UTF8, true)) oldTemplate.SerializeTemplate(writer);
+using (var writer = new BinaryWriter(dataBytes, System.Text.Encoding.UTF8, true))
+    oldTemplate.SerializeData(new LegacyPreferences(), writer);
+var incoming = new KSerialization.DeserializationTemplate(typeof(CurrentPreviewState).AssemblyQualifiedName!, new FastReader(schemaBytes.ToArray()));
+var mapping = new KSerialization.DeserializationMapping(incoming, newTemplate);
+var retained = new CurrentPreviewState();
+var dataReader = new FastReader(dataBytes.ToArray());
+mapping.Deserialize(retained, dataReader);
+Check(retained.previewMode == 2 && retained.cameraSafetyVersion == 2 && dataReader.Position == dataBytes.Length,
+    "Native KSerialization skips removed preference fields and retains preview state");
 
 var textType = mod.GetType("RevealStarMap.RevealText", true)!;
 var resolve = textType.GetMethod("ResolveLanguage", BindingFlags.NonPublic | BindingFlags.Static)!;
@@ -147,3 +168,19 @@ Check((string)entryType.GetProperty("Title")!.GetValue(chineseEntry)! == "快捷
 
 Console.WriteLine($"{checks} managed integration checks passed. Unity rendering, dialogs and live rocket flight require in-game testing.");
 record SurveyCell(int R, int Q, float Points);
+
+[KSerialization.SerializationConfig(KSerialization.MemberSerialization.OptIn)]
+class LegacyPreferences
+{
+    [KSerialization.Serialize] public bool notificationShown = true;
+    [KSerialization.Serialize] public int previewMode = 2;
+    [KSerialization.Serialize] public bool permanentSurveyConfirmed = true;
+    [KSerialization.Serialize] public int cameraSafetyVersion = 2;
+}
+
+[KSerialization.SerializationConfig(KSerialization.MemberSerialization.OptIn)]
+class CurrentPreviewState
+{
+    [KSerialization.Serialize] public int previewMode = -1;
+    [KSerialization.Serialize] public int cameraSafetyVersion = -1;
+}

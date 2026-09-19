@@ -3,7 +3,7 @@
 ## Overview
 
 Standalone `Oxygen Not Included: Spaced Out` debug mod focused on temporary map
-visibility tools, with an optional confirmed permanent starmap survey.
+visibility tools, with an optional global preference for permanent starmap survey.
 
 Published version: `0.3.1.0`. Local candidate: `0.4.0.0`, pending Unity UI/flight validation.
 Current implementation: [architecture](docs/architecture.md).
@@ -21,7 +21,7 @@ Current user-facing feature set:
 - full live simulation canvas reveal and restore
 - configurable hotkeys in `Mod Options`
 - default reversible preview; optional permanent analysis for real rocket navigation
-- preferences for language, feedback and survey confirmation; default once per save
+- global preferences for language, shortcuts, action and feedback; silent preview by default
 - complete English, Simplified Chinese and Traditional Chinese catalogs
 
 ## Architecture Snapshot

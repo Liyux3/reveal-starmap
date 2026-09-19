@@ -39,14 +39,14 @@ public enum StarMapAction
 }
 
 public enum UiLanguage { Automatic, English, SimplifiedChinese, TraditionalChinese }
-public enum SurveyConfirmation { OncePerSave, EveryTime }
-public enum ActionFeedback { FirstUseOnly, EveryAction, Off }
+// Keep the existing numeric values so previous configs continue to deserialize correctly.
+public enum ActionFeedback { EveryAction = 1, Off = 2 }
 
 [JsonObject(MemberSerialization.OptIn)]
 [ConfigFile("config.json", true, true)]
 public sealed class RevealStarMapSettings : IOptions
 {
-    private ActionFeedback? feedback;
+    private ActionFeedback feedback = ActionFeedback.Off;
 
     [DynamicOption(typeof(StarMapActionOptionsEntry))]
     [JsonProperty]
@@ -72,21 +72,13 @@ public sealed class RevealStarMapSettings : IOptions
     [JsonProperty]
     public UiLanguage Language { get; set; } = UiLanguage.Automatic;
 
-    [DynamicOption(typeof(SurveyConfirmationOptionsEntry))]
-    [JsonProperty]
-    public SurveyConfirmation SurveyConfirmation { get; set; } = SurveyConfirmation.OncePerSave;
-
     [DynamicOption(typeof(FeedbackOptionsEntry))]
     [JsonProperty]
     public ActionFeedback Feedback
     {
-        get => feedback ?? (ShowNotification ? ActionFeedback.FirstUseOnly : ActionFeedback.Off);
+        get => feedback == ActionFeedback.EveryAction ? feedback : ActionFeedback.Off;
         set => feedback = value;
     }
-
-    // The new Feedback preference wins when present; old configs retain their notification choice.
-    [JsonProperty]
-    public bool ShowNotification { get; set; } = true;
 
     public IEnumerable<IOptionsEntry> CreateOptions() => Array.Empty<IOptionsEntry>();
 
@@ -97,16 +89,12 @@ public sealed class RevealStarMapSettings : IOptions
         if (!Enum.IsDefined(typeof(StarMapAction), StarMapAction))
             StarMapAction = StarMapAction.TemporaryPreview;
         if (!Enum.IsDefined(typeof(UiLanguage), Language)) Language = UiLanguage.Automatic;
-        if (!Enum.IsDefined(typeof(SurveyConfirmation), SurveyConfirmation)) SurveyConfirmation = SurveyConfirmation.OncePerSave;
-        if (!Enum.IsDefined(typeof(ActionFeedback), Feedback)) Feedback = ActionFeedback.FirstUseOnly;
         if (!Enum.IsDefined(typeof(RevealModifier), Modifier)) Modifier = RevealModifier.Shift;
         if (!Enum.IsDefined(typeof(RevealModifier), CanvasModifier)) CanvasModifier = RevealModifier.Shift;
         if (!Enum.IsDefined(typeof(RevealFunctionKey), FunctionKey)) FunctionKey = RevealFunctionKey.F7;
         if (!Enum.IsDefined(typeof(RevealFunctionKey), CanvasFunctionKey)) CanvasFunctionKey = RevealFunctionKey.F8;
     }
 
-    internal bool RequiresSurveyConfirmation(bool confirmedInSave) =>
-        SurveyConfirmation == SurveyConfirmation.EveryTime || !confirmedInSave;
 }
 
 internal static class RevealStarMapSettingsManager

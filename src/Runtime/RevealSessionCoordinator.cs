@@ -388,12 +388,7 @@ internal static class RevealSessionCoordinator
     {
         string body = RevealText.Format(key, values);
         Debug.Log($"{RevealStarMapMod.Tag} {body}");
-        RevealSnapshotState? state = GetState();
-        if (state == null || Messenger.Instance == null) return;
-        ActionFeedback feedback = RevealStarMapSettingsManager.Current.Feedback;
-        if (feedback == ActionFeedback.Off) return;
-        if (feedback == ActionFeedback.FirstUseOnly && !state.TryMarkNotificationShown()) return;
-        state.TryMarkNotificationShown();
+        if (Messenger.Instance == null || RevealStarMapSettingsManager.Current.Feedback != ActionFeedback.EveryAction) return;
         Messenger.Instance.QueueMessage(new RevealStarMapMessage(key, values));
     }
 

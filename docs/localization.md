@@ -1,7 +1,7 @@
 # Localization and Copy
 
 All mod-provided settings labels, choices, tooltips, button text, routine notifications
-and confirmation text live in `translations/*.json`. Internal diagnostic logs remain English.
+and error text live in `translations/*.json`. Internal diagnostic logs remain English.
 
 - `en.json`: canonical keys and embedded fallback, also shipped as a translator reference.
 - `zh-CN.json`: Simplified Chinese, including the game's plain `zh` locale.
@@ -17,10 +17,11 @@ then its language prefix. Missing, empty or unreadable translations fall back to
 English; invalid format strings fall back when formatted. Locale filenames cannot contain
 path separators. Catalogs are cached for the session; restart after editing translation files.
 
-Use short verbs for buttons: Preview map, End preview, Analyze permanently. Preview means
+Use short verbs for buttons: Preview map and End preview. Preview means
 reversible visual access; survey/analysis means persistent navigation state. In Chinese,
 use 预览/預覽, 分析, 星图/星圖 and 画布/畫布 consistently. Put technical explanations in
-tooltips and documentation, and irreversible consequences in the confirmation body.
+tooltips and documentation. Permanent-survey consequences belong in the mode option's
+tooltip; ordinary previews have no navigation-analysis messaging or onboarding.
 
 The managed verifier checks catalog coverage, placeholders, locale aliases, fallback,
 typed option write-back and refreshed option language. Live Unity layout remains a separate

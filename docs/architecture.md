@@ -15,15 +15,14 @@ while a preview is active. Camera bounds apply to the active world or full canva
 
 ## Permanent Survey
 
-`RevealStarMapSettings.StarMapAction` defaults to TemporaryPreview. Saving options only
-updates configuration. `RevealStarMapRuntime` requests native confirmation before a save's
-first survey, or every time if configured, guarded against duplicate dialogs and save changes.
-`RevealSnapshotState.permanentSurveyConfirmed` is set only after successful commit. New saves
-and canceled/failed confirmations retain the initial confirmation requirement.
-The confirmed cell list is fixed when the dialog opens; analysis points are re-read at
-confirmation to preserve research earned in the meantime.
+`RevealStarMapSettings.StarMapAction` defaults to TemporaryPreview. All preferences live in
+PLib's shared mod config and apply across saves. Selecting PermanentSurvey explicitly opts
+the starmap shortcut into immediate permanent analysis; consequences are disclosed in that
+option's tooltip. Loading a save only reads the preference. The shortcut is the sole trigger.
+There is no per-save consent or onboarding. The old per-save booleans were removed; native
+KSerialization's unknown-field skipping is covered by a managed integration test.
 
-`StarMapSurvey.Prepare` copies the real fog dictionary and raises only the confirmed,
+`StarMapSurvey.Prepare` copies the real fog dictionary and raises only the current,
 valid cells to `ROCKETRY.CLUSTER_FOW.POINTS_TO_REVEAL`, preserving higher values and other
 entries. Preparation is side-effect free; commit swaps the dictionary once. A single
 `ClusterFogOfWarRevealed` event with null location invalidates routes and telescope targets
@@ -42,8 +41,10 @@ widths use layout units, avoiding the older `SetMinWidthInCharacters` font-metri
 `IOptions.OnOptionsChanged` applies settings immediately; unknown enums select safe defaults.
 Input respects modal screens, text fields and exact modifiers. Settings revisions trigger
 actionable shortcut-conflict feedback; mode and preference events refresh the native world
-button's label and tooltip. General feedback defaults to first-use only and has EveryAction
-and Off preferences. Hidden legacy ShowNotification JSON is retained for opt-out migration.
+button's label and tooltip. General feedback defaults to Off and can be enabled globally.
+EveryAction retains its existing numeric enum value; retired first-use values become Off.
+Legacy ShowNotification and SurveyConfirmation JSON fields are ignored on read and omitted
+when settings are next saved. Existing shortcut and explicit EveryAction values are preserved.
 
 `RevealText` loads keyed catalogs for English, Simplified Chinese and Traditional Chinese.
 English is embedded in the DLL as the fallback. Mod language can follow the game or be

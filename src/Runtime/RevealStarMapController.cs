@@ -16,7 +16,6 @@ internal sealed class RevealStarMapController : KMonoBehaviour
 
     protected override void OnCleanUp()
     {
-        RevealStarMapRuntime.CloseDialog();
         RevealSessionCoordinator.CleanupSession();
         base.OnCleanUp();
     }
@@ -46,7 +45,7 @@ internal sealed class RevealStarMapController : KMonoBehaviour
             return;
         }
 
-        if (RevealStarMapRuntime.DialogOpen || !RevealInput.CanProcessHotkeys())
+        if (!RevealInput.CanProcessHotkeys())
         {
             return;
         }

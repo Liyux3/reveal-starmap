@@ -1,102 +1,53 @@
 # Reveal StarMap
 
-Independent `Oxygen Not Included: Spaced Out` mod for temporary map previews and optional permanent starmap analysis.
+Temporary map previews for **Oxygen Not Included: Spaced Out!**
 
-`0.4.0.0` is a local release candidate. The published Workshop version is `0.3.1.0`.
+- **Shift + F7** previews the starmap. Press again to return.
+- **Shift + F8** previews the canvas containing all worlds. Press again to return.
+- Select an asteroid and use **Preview map** or **End preview** in its details.
 
-## Choose Your Behavior
+Previews preserve real exploration progress. World and canvas previews restore your
+previous camera view when ended and close when reloading a save.
 
-In **Mod Options > Star Map Action**, choose:
+## Configure Once
 
-| Action | What happens | Rocket navigation | Reversible |
-| --- | --- | --- | --- |
-| Temporary Preview (default) | Displays the full starmap while preserving actual analysis | Normal analysis requirements | Press the hotkey again |
-| Permanent Survey | The hotkey analyzes existing cells after the required confirmation | Uses real analyzed cells; fuel, range and landing requirements still apply | Load an earlier save |
+Open **Mods > Reveal StarMap > Options** from the game's main menu.
+Shortcuts, language and behavior are shared across all saves and apply when saved.
 
-Changing the setting or loading a save never performs a permanent survey. Canceling
-the confirmation leaves exploration untouched. After surveying, removing the mod or
-switching back to preview does not erase analysis. Later cluster expansion requires
-another explicit survey. An active preview can always be ended with the same key,
-including after changing the option.
+Defaults are reversible preview, the game's language and silent operation.
+English, Simplified Chinese and Traditional Chinese are included. Routine action
+notifications can be enabled in Preferences; actionable errors remain visible.
 
-World and full-canvas previews remain temporary in both modes.
+An optional **Starmap > Action > Permanent survey** setting makes the starmap shortcut
+permanently analyze the current map without another prompt. Its tooltip explains
+permanence, telescope rewards and navigation limits. Changing a setting or loading a
+save never performs analysis by itself. Ordinary preview controls stay the same.
 
-## Preferences
+For details, see [behavior and data](docs/architecture.md) and
+[translation guidance](docs/localization.md).
 
-Options are grouped into **Starmap**, **Canvas**, and **Preferences**. Ordinary play
-uses the configured shortcut directly; selecting a mode is a one-time preference.
+## Release Status
 
-- **Language:** follows the game by default; English, Simplified Chinese and Traditional Chinese overrides are available. Save and reopen options to update their labels.
-- **Confirm permanent survey:** once per save by default; each colony's first successful survey records its consent. Later expansions use the same preference. Select Every time to require confirmation for each operation.
-- **Action notifications:** first use only by default; Every action and Off are available. Existing notification opt-outs are preserved. Errors and the first permanent confirmation remain visible.
+Packaged locally: **0.4.0.0**. Workshop: **0.3.1.0**.
+Managed checks and native game startup pass; settings-menu interaction and live flight verification remain pending.
+See [validation status](docs/progress.md).
 
-An already analyzed map produces no modal dialog. Its routine feedback follows the
-notification preference. World details use a single **Preview map / End preview**
-button that updates with the current mode and language. Existing action messages
-also follow language changes.
+Upload the complete mod folder, including its `translations` directory.
 
-Translations are keyed JSON catalogs; [translation guidance](docs/localization.md)
-describes fallback behavior and adding a language.
-
-### Achievements and Research
-
-Permanent Survey keeps debug, instant-build and sandbox flags unchanged, so it does
-not itself disable Steam achievements or re-enable previously disabled achievements.
-It changes exploration progression, and other mods may add their own achievement rules.
-It does not mark planets as visited or reveal their terrain. The native terrain-reveal
-and landing achievements therefore still use their original requirements.
-
-Surveying bypasses telescope analysis **and its Data Bank rewards**. Use normal
-exploration if you want that research progression. Temporary Preview preserves the
-real analysis state and ongoing research progress.
-
-## Current Scope
-
-- configurable hotkey through PLib options
-- consistent English, Simplified Chinese and Traditional Chinese labels and messages
-- instant full starmap preview without changing exploration progress
-- second press ends the preview and returns to the normal fog-of-war view
-- a world side-screen button previews one selected asteroid without triggering discovery or hidden spawns
-- a second configurable hotkey previews the entire live simulation canvas across all worlds
-- legacy snapshots from older releases are restored once and migrated to the render-only preview model
-- only one preview mode is active at a time, with camera state restored after world and canvas previews
-- world and canvas previews end safely when a save is reloaded because camera snapshots are session-local
-- first-use feedback and once-per-save survey confirmation by default, configurable in Preferences
-
-## Default Hotkey
-
-- `Shift + F7`, press once to preview the starmap, press again to end the preview
-- `Shift + F8`, press once to preview the full live canvas, press again to end the preview
-
-In Permanent Survey mode, `Shift + F7` performs analysis, asking according to the confirmation preference.
-All bindings remain configurable. Settings apply when confirmed without restarting.
-Hotkeys are ignored in modal dialogs and text fields, and modifier matching is exact.
-
-## Validation
-
-Build against your installed game and run the managed integration checks:
+## Development
 
 ```sh
+./scripts/bootstrap-dotnet.sh
 ./scripts/build.sh
 .tooling/dotnet/dotnet run --project tests/Verify.csproj -- \
   "$HOME/Library/Application Support/Steam/steamapps/common/OxygenNotIncluded/OxygenNotIncluded.app/Contents/Resources/Data/Managed"
 ```
 
-These checks load the shipped mod, real PLib and ONI managed types. They cover
-analysis preparation, preservation, idempotence, serialization and options write-back.
-They do not execute Unity rendering, native save loading or live rocket flight.
-See [architecture](docs/architecture.md) and [validation status](docs/progress.md).
+The verifier uses the built DLL, actual PLib and ONI managed types. It covers analysis
+preservation, serialization, settings migration, typed option write-back and all
+translation catalogs. Live rendering, native save loading and flight require the game.
 
-## Build
+`./scripts/install-local.sh` installs a local copy. Enable only one Local or Workshop
+copy with the same mod ID while testing.
 
-1. `./scripts/bootstrap-dotnet.sh`
-2. `./scripts/install-local.sh`
-
-The built mod installs to:
-
-- `/Users/liyux/Library/Application Support/unity.Klei.Oxygen Not Included/mods/Local/liyux.RevealStarMap`
-
-
-## Preview source
-
-- Based on an official Steam store screenshot for `Oxygen Not Included: Spaced Out`.
+The preview image is based on an official Spaced Out Steam store screenshot.
