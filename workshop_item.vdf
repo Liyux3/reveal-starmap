@@ -1,11 +1,11 @@
 "workshopitem"
 {
 	"appid"		"457140"
-	"contentfolder"		"/Users/liyux/Library/Application Support/unity.Klei.Oxygen Not Included/mods/Local/liyux.RevealStarMap"
-	"previewfile"		"/Users/liyux/Documents/Playground/reveal-starmap/preview.png"
+	"contentfolder"		"/Users/liyux/Library/Application Support/RevealStarMapWorkshopUpload/candidates/0.4.0.0"
+	"previewfile"		"/Users/liyux/Documents/Playground/OxygenNotIncluded/reveal-starmap/preview.png"
 	"visibility"		"0"
 	"title"		"Reveal StarMap"
-	"description"		"Reveal or restore the entire Spaced Out starmap with a configurable hotkey. Press once to reveal everything, press again to restore the previous fog-of-war snapshot. A second configurable hotkey reveals the full live simulation canvas across all worlds for debug inspection. The asteroid world side-screen now also adds a Reveal World Map button that fully opens one selected world, then restores it on the next press. Starmap snapshots are saved with the campaign.\n\n使用可配置快捷键显示或恢复整个 Spaced Out 星图。按一次全亮，再按一次恢复到 Reveal 前的迷雾状态。现在还支持第二组可配置快捷键，用来显示整个 live simulation canvas，方便看所有世界在底层 2D 画布上的分布。星图右下角的小行星说明页也新增了 Reveal World Map 按钮，可以一键开对应世界，再按一次恢复。星图快照会随存档保存。"
-	"changenote"		"Added world-map reveal button and full-canvas reveal hotkey."
-	"publishedfileid"		"3695952102"
+	"description"		"Shift + F7 temporarily previews the Spaced Out starmap; press again to restore normal fog. Preview preserves real exploration, so rocket navigation still requires analysis. To analyze the map for navigation, choose Permanent Survey under Mod Options > Star Map Action, then use the hotkey and confirm in-game. This permanently analyzes existing cells, skips telescope work and Data Bank rewards, and retains fuel, range and landing rules. It preserves debug/sandbox flags and does not itself disable Steam achievements. Reload an earlier save to undo.\n\nShift + F8 previews the full simulation canvas. Select an asteroid and use Preview World Map to preview its terrain. Both remain reversible regardless of Star Map Action. Hotkeys are configurable. Requires Spaced Out.\n\n默认 Shift + F7 临时预览星图，再按一次恢复正常迷雾；火箭仍需真实分析才能航行。需要解锁航路时，在模组选项的星图快捷键行为中选择永久分析星图，再按快捷键并确认。结果永久保存在当前存档，跳过望远镜工作和数据磁盘奖励，保留燃料、射程及着陆规则，保持调试和沙盒标记原状，本身不会禁用 Steam 成就。需要回退时请载入操作前的存档。Shift + F8 预览完整模拟画布；选中小行星可以预览该世界。这两种预览始终可逆，快捷键可以配置。"
+	"changenote"		"v0.4.0 candidate: Added confirmed Permanent Survey alongside default reversible previews; documented navigation, achievement and telescope reward effects; applied settings immediately and avoided legacy font-metric calls in dropdowns. Live UI and flight validation pending."
+	"publishedfileid"		"3695988693"
 }

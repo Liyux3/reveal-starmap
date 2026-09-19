@@ -9,8 +9,8 @@ internal sealed class RevealModifierOptionsEntry : EnumDropdownOptionsEntry<Reve
             field,
             field == "CanvasModifier" ? "Canvas Hotkey Modifier" : "StarMap Hotkey Modifier",
             field == "CanvasModifier"
-                ? "Modifier key required before the full live-canvas reveal trigger key."
-                : "Modifier key required before the starmap reveal trigger key.",
+                ? "Modifier key required before the full live-canvas preview trigger key."
+                : "Modifier key for the selected Star Map Action. Use exactly this modifier.",
             "Input",
             BuildChoices())
     {

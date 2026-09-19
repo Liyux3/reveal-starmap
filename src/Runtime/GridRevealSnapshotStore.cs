@@ -10,16 +10,6 @@ internal static class GridRevealSnapshotStore
         return state != null && state.HasGridSnapshot && state.GridRevealApplied;
     }
 
-    internal static bool Matches(GridRevealSnapshotKind kind, int worldId)
-    {
-        RevealSnapshotState? state = GetState();
-        return state != null &&
-            state.HasGridSnapshot &&
-            state.GridRevealApplied &&
-            state.GridSnapshotKind == kind &&
-            state.GridSnapshotWorldId == worldId;
-    }
-
     internal static GridRevealSnapshotKind GetSnapshotKind()
     {
         return GetState()?.GridSnapshotKind ?? GridRevealSnapshotKind.None;
@@ -30,43 +20,10 @@ internal static class GridRevealSnapshotStore
         return GetState()?.GridSnapshotWorldId ?? -1;
     }
 
-    internal static bool CaptureRect(GridRevealSnapshotKind kind, int worldId, int offsetX, int offsetY, int width, int height)
-    {
-        RevealSnapshotState? state = GetState();
-        if (state == null || !Grid.IsInitialized() || width <= 0 || height <= 0)
-        {
-            return false;
-        }
-
-        int length = width * height;
-        var visible = new byte[length];
-        var spawnable = new byte[length];
-
-        int index = 0;
-        for (int y = 0; y < height; y++)
-        {
-            for (int x = 0; x < width; x++)
-            {
-                int cell = Grid.XYToCell(offsetX + x, offsetY + y);
-                visible[index] = Grid.Visible[cell];
-                spawnable[index] = Grid.Spawnable[cell];
-                index++;
-            }
-        }
-
-        state.StoreGridSnapshot(kind, worldId, offsetX, offsetY, width, height, visible, spawnable);
-        return true;
-    }
-
-    internal static void MarkApplied()
-    {
-        GetState()?.MarkGridRevealApplied();
-    }
-
     internal static bool Restore()
     {
         RevealSnapshotState? state = GetState();
-        if (state == null || !state.HasGridSnapshot)
+        if (state == null || !state.HasGridSnapshot || !Grid.IsInitialized())
         {
             return false;
         }
@@ -83,7 +40,21 @@ internal static class GridRevealSnapshotStore
         {
             for (int x = 0; x < state.GridSnapshotWidth; x++)
             {
-                int cell = Grid.XYToCell(state.GridSnapshotOffsetX + x, state.GridSnapshotOffsetY + y);
+                int gridX = state.GridSnapshotOffsetX + x;
+                int gridY = state.GridSnapshotOffsetY + y;
+                if (gridX < 0 || gridY < 0 || gridX >= Grid.WidthInCells || gridY >= Grid.HeightInCells)
+                {
+                    index++;
+                    continue;
+                }
+
+                int cell = Grid.XYToCell(gridX, gridY);
+                if (!Grid.IsValidCell(cell))
+                {
+                    index++;
+                    continue;
+                }
+
                 Grid.Visible[cell] = state.GridVisibleSnapshot[index];
                 Grid.Spawnable[cell] = state.GridSpawnableSnapshot[index];
                 index++;

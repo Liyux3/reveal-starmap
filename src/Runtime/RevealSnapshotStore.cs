@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Reflection;
 using HarmonyLib;
 using RevealStarMap.State;
 
@@ -9,35 +10,13 @@ internal static class RevealSnapshotStore
     private static readonly AccessTools.FieldRef<ClusterFogOfWarManager.Instance, Dictionary<AxialI, float>> RevealPointsRef =
         AccessTools.FieldRefAccess<ClusterFogOfWarManager.Instance, Dictionary<AxialI, float>>("m_revealPointsByCell");
 
-    internal static bool Capture()
-    {
-        var fog = GetFog();
-        RevealSnapshotState? snapshotState = GetSnapshotState();
-        if (fog == null || snapshotState == null)
-        {
-            return false;
-        }
-
-        Dictionary<AxialI, float> source = GetCurrentRevealPoints(fog);
-        snapshotState.Store(source);
-        return true;
-    }
-
-    internal static bool HasSnapshot()
-    {
-        RevealSnapshotState? snapshotState = GetSnapshotState();
-        return snapshotState != null && snapshotState.HasSnapshot;
-    }
+    private static readonly MethodInfo? UpdateVisMethod =
+        AccessTools.Method(typeof(ClusterMapScreen), "UpdateVis", new[] { typeof(bool) });
 
     internal static bool ShouldRestore()
     {
         RevealSnapshotState? snapshotState = GetSnapshotState();
         return snapshotState != null && snapshotState.HasSnapshot && snapshotState.RevealApplied;
-    }
-
-    internal static void MarkRevealApplied()
-    {
-        GetSnapshotState()?.MarkRevealApplied();
     }
 
     internal static bool Restore()
@@ -51,15 +30,30 @@ internal static class RevealSnapshotStore
 
         ref Dictionary<AxialI, float> revealPoints = ref RevealPointsRef(fog);
         revealPoints = snapshotState.RestoreSnapshot();
-        fog.UpdateRevealedCellsFromDiscoveredWorlds();
         snapshotState.ClearSnapshot();
         RefreshClusterMap();
         return true;
     }
 
-    private static ClusterFogOfWarManager.Instance? GetFog()
+    internal static ClusterFogOfWarManager.Instance? GetFog()
     {
         return SaveGame.Instance == null ? null : SaveGame.Instance.GetSMI<ClusterFogOfWarManager.Instance>();
+    }
+
+    internal static Dictionary<AxialI, float> PrepareSurvey(ClusterFogOfWarManager.Instance fog,
+        IEnumerable<AxialI> cells, out int changed)
+    {
+        return StarMapSurvey.Prepare(RevealPointsRef(fog), cells,
+            TUNING.ROCKETRY.CLUSTER_FOW.POINTS_TO_REVEAL, out changed);
+    }
+
+    internal static void CommitSurvey(ClusterFogOfWarManager.Instance fog,
+        Dictionary<AxialI, float> surveyed)
+    {
+        RevealPointsRef(fog) = surveyed;
+        // One batch notification updates telescope targets and cached routes. A null location
+        // avoids emitting a discovery popup (or revealing terrain) for every asteroid.
+        Game.Instance.Trigger((int)GameHashes.ClusterFogOfWarRevealed);
     }
 
     private static RevealSnapshotState? GetSnapshotState()
@@ -67,14 +61,21 @@ internal static class RevealSnapshotStore
         return SaveGame.Instance == null ? null : SaveGame.Instance.GetComponent<RevealSnapshotState>();
     }
 
-    private static Dictionary<AxialI, float> GetCurrentRevealPoints(ClusterFogOfWarManager.Instance fog)
-    {
-        Dictionary<AxialI, float>? source = RevealPointsRef(fog);
-        return source == null ? new Dictionary<AxialI, float>() : new Dictionary<AxialI, float>(source);
-    }
-
     internal static void RefreshClusterMap()
     {
-        ClusterMapScreen.Instance?.Trigger(1980521255);
+        ClusterMapScreen? screen = ClusterMapScreen.Instance;
+        if (screen == null || UpdateVisMethod == null)
+        {
+            return;
+        }
+
+        try
+        {
+            UpdateVisMethod.Invoke(screen, new object[] { false });
+        }
+        catch (System.Exception exception)
+        {
+            Debug.LogError($"{RevealStarMapMod.Tag} Could not refresh the starmap preview. {exception}");
+        }
     }
 }

@@ -8,6 +8,18 @@ namespace RevealStarMap.State;
 public sealed class RevealSnapshotState : KMonoBehaviour
 {
     [Serialize]
+    private int previewMode;
+
+    [Serialize]
+    private int previewWorldId = -1;
+
+    [Serialize]
+    private bool notificationShown;
+
+    [Serialize]
+    private int cameraSafetyVersion;
+
+    [Serialize]
     private bool hasSnapshot;
 
     [Serialize]
@@ -54,6 +66,12 @@ public sealed class RevealSnapshotState : KMonoBehaviour
 
     internal bool HasSnapshot => hasSnapshot && snapshotQs.Count == snapshotRs.Count && snapshotQs.Count == snapshotPoints.Count;
 
+    internal RevealPreviewMode PreviewMode => (RevealPreviewMode)previewMode;
+
+    internal int PreviewWorldId => previewWorldId;
+
+    internal int CameraSafetyVersion => cameraSafetyVersion;
+
     internal bool RevealApplied => revealApplied;
 
     internal bool HasGridSnapshot => hasGridSnapshot &&
@@ -80,23 +98,6 @@ public sealed class RevealSnapshotState : KMonoBehaviour
 
     internal byte[] GridSpawnableSnapshot => gridSpawnableSnapshot;
 
-    internal void Store(Dictionary<AxialI, float> revealPoints)
-    {
-        snapshotQs.Clear();
-        snapshotRs.Clear();
-        snapshotPoints.Clear();
-
-        foreach (KeyValuePair<AxialI, float> revealPoint in revealPoints)
-        {
-            snapshotQs.Add(revealPoint.Key.Q);
-            snapshotRs.Add(revealPoint.Key.R);
-            snapshotPoints.Add(revealPoint.Value);
-        }
-
-        hasSnapshot = true;
-        revealApplied = false;
-    }
-
     internal Dictionary<AxialI, float> RestoreSnapshot()
     {
         var restored = new Dictionary<AxialI, float>(snapshotQs.Count);
@@ -106,30 +107,6 @@ public sealed class RevealSnapshotState : KMonoBehaviour
         }
 
         return restored;
-    }
-
-    internal void MarkRevealApplied()
-    {
-        revealApplied = true;
-    }
-
-    internal void StoreGridSnapshot(GridRevealSnapshotKind kind, int worldId, int offsetX, int offsetY, int width, int height, byte[] visible, byte[] spawnable)
-    {
-        hasGridSnapshot = true;
-        gridRevealApplied = false;
-        gridSnapshotKind = (int)kind;
-        gridSnapshotWorldId = worldId;
-        gridSnapshotOffsetX = offsetX;
-        gridSnapshotOffsetY = offsetY;
-        gridSnapshotWidth = width;
-        gridSnapshotHeight = height;
-        gridVisibleSnapshot = (byte[])visible.Clone();
-        gridSpawnableSnapshot = (byte[])spawnable.Clone();
-    }
-
-    internal void MarkGridRevealApplied()
-    {
-        gridRevealApplied = true;
     }
 
     internal void ClearGridSnapshot()
@@ -153,5 +130,27 @@ public sealed class RevealSnapshotState : KMonoBehaviour
         snapshotQs.Clear();
         snapshotRs.Clear();
         snapshotPoints.Clear();
+    }
+
+    internal void SetPreview(RevealPreviewMode mode, int worldId = -1)
+    {
+        previewMode = (int)mode;
+        previewWorldId = mode == RevealPreviewMode.World ? worldId : -1;
+    }
+
+    internal bool TryMarkNotificationShown()
+    {
+        if (notificationShown)
+        {
+            return false;
+        }
+
+        notificationShown = true;
+        return true;
+    }
+
+    internal void MarkCameraSafetyVersion(int version)
+    {
+        cameraSafetyVersion = version;
     }
 }

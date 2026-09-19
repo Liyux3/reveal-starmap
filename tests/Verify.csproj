@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <OniManagedPath Condition="'$(OniManagedPath)' == ''">$(HOME)/Library/Application Support/Steam/steamapps/common/OxygenNotIncluded/OxygenNotIncluded.app/Contents/Resources/Data/Managed</OniManagedPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Test-host shim for ONI's .NET Framework Newtonsoft.Json assembly. Never shipped in the mod. -->
+    <PackageReference Include="System.Security.Permissions" Version="8.0.0" />
+    <Reference Include="RevealStarMap" HintPath="../dist/liyux.RevealStarMap/RevealStarMap.dll" />
+    <Reference Include="PLib" HintPath="../vendor/PLib.dll" />
+    <Reference Include="Assembly-CSharp" HintPath="$(OniManagedPath)/Assembly-CSharp.dll" />
+    <Reference Include="Assembly-CSharp-firstpass" HintPath="$(OniManagedPath)/Assembly-CSharp-firstpass.dll" />
+    <Reference Include="Newtonsoft.Json" HintPath="$(OniManagedPath)/Newtonsoft.Json.dll" />
+    <Reference Include="UnityEngine.CoreModule" HintPath="$(OniManagedPath)/UnityEngine.CoreModule.dll" />
+  </ItemGroup>
+</Project>

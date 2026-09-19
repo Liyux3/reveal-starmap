@@ -3,7 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BUILD_DIR="$ROOT_DIR/artifacts/build"
-DIST_DIR="$ROOT_DIR/dist/liyux.RevealStarMap"
+DIST_DIR="${DIST_DIR:-$ROOT_DIR/dist/liyux.RevealStarMap}"
 DOTNET_CLI_HOME_DIR="$ROOT_DIR/.tooling/dotnet-cli"
 DEFAULT_ONI_APP="/Users/liyux/Library/Application Support/Steam/steamapps/common/OxygenNotIncluded/OxygenNotIncluded.app"
 VENDORED_PLIB="$ROOT_DIR/vendor/PLib.dll"
@@ -107,6 +107,7 @@ mapfile -t SOURCE_FILES < <(find "$ROOT_DIR/src" \
   -target:library \
   -langversion:latest \
   -nullable:enable \
+  -deterministic+ \
   -debug:portable \
   -optimize+ \
   -out:"$BUILD_DIR/RevealStarMap.dll" \
@@ -123,6 +124,7 @@ mapfile -t SOURCE_FILES < <(find "$ROOT_DIR/src" \
   -r:"$ONI_MANAGED_PATH/UnityEngine.dll" \
   -r:"$ONI_MANAGED_PATH/UnityEngine.CoreModule.dll" \
   -r:"$ONI_MANAGED_PATH/UnityEngine.InputLegacyModule.dll" \
+  -r:"$ONI_MANAGED_PATH/UnityEngine.UI.dll" \
   -r:"$ONI_MANAGED_PATH/Unity.TextMeshPro.dll"
 
 cp "$BUILD_DIR/RevealStarMap.dll" "$DIST_DIR/"

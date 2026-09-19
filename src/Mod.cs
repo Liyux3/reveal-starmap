@@ -17,6 +17,7 @@ public sealed class RevealStarMapMod : UserMod2
         base.OnLoad(harmony);
         PUtil.InitLibrary();
         new POptions().RegisterOptions(this, typeof(RevealStarMapSettings));
+        RevealStarMapSettingsManager.Reload();
         Debug.Log($"{Tag} Loaded.");
     }
 }

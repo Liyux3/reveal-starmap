@@ -9,8 +9,8 @@ internal sealed class RevealFunctionKeyOptionsEntry : EnumDropdownOptionsEntry<R
             field,
             field == "CanvasFunctionKey" ? "Canvas Hotkey Function Key" : "StarMap Hotkey Function Key",
             field == "CanvasFunctionKey"
-                ? "Function key used to reveal the full live simulation canvas across all worlds."
-                : "Function key used to reveal the entire starmap.",
+                ? "Function key used to preview the full live simulation canvas across all worlds."
+                : "Function key for the selected Star Map Action: temporary preview or confirmed permanent survey.",
             "Input",
             BuildChoices())
     {

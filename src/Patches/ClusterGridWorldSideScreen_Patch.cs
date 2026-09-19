@@ -45,7 +45,11 @@ public static class ClusterGridWorldSideScreen_Patch
         cloneRect.anchorMax = templateRect.anchorMax;
         cloneRect.pivot = templateRect.pivot;
         cloneRect.sizeDelta = templateRect.sizeDelta;
-        cloneRect.anchoredPosition = templateRect.anchoredPosition + new Vector2(0f, -52f);
+        cloneRect.SetSiblingIndex(templateRect.GetSiblingIndex() + 1);
+        if (parent.GetComponent("VerticalLayoutGroup") == null && parent.GetComponent("GridLayoutGroup") == null)
+        {
+            cloneRect.anchoredPosition = templateRect.anchoredPosition + new Vector2(0f, -52f);
+        }
 
         clone.onClick += delegate
         {
@@ -54,6 +58,7 @@ public static class ClusterGridWorldSideScreen_Patch
             if (world != null)
             {
                 GridRevealRuntime.TriggerWorldRevealAction(world);
+                RefreshRevealButton(screen);
             }
         };
 
@@ -75,13 +80,13 @@ public static class ClusterGridWorldSideScreen_Patch
         }
 
         button.isInteractable = hasWorld;
-        SetButtonText(button, isRestore ? "Restore World Map" : "Reveal World Map");
+        SetButtonText(button, isRestore ? "End World Preview" : "Preview World Map");
 
         if (tooltip != null)
         {
             tooltip.SetSimpleTooltip(isRestore
-                ? "Restore the previously saved fog-of-war state for this world."
-                : "Fully reveal this world's map for debug inspection, then switch the camera there.");
+                ? "End the visual preview. Exploration and simulation state remain unchanged."
+                : "Preview the complete world map without changing fog, discovery, or simulation state.");
         }
     }
 

@@ -1,9 +1,32 @@
+using System.Collections.Generic;
+using HarmonyLib;
 using UnityEngine;
 
 namespace RevealStarMap.Runtime;
 
 internal static class RevealInput
 {
+    private static readonly AccessTools.FieldRef<KScreenManager, List<KScreen>> ScreensRef =
+        AccessTools.FieldRefAccess<KScreenManager, List<KScreen>>("screenStack");
+
+    internal static bool CanProcessHotkeys()
+    {
+        if (KScreenManager.Instance != null)
+        {
+            foreach (KScreen screen in ScreensRef(KScreenManager.Instance))
+                if (screen != null && screen.IsScreenActive() && screen.IsModal()) return false;
+        }
+
+        GameObject? selected = UnityEngine.EventSystems.EventSystem.current?.currentSelectedGameObject;
+        if (selected == null)
+        {
+            return true;
+        }
+
+        return selected.GetComponentInParent<KInputTextField>() == null &&
+            selected.GetComponentInParent<TMPro.TMP_InputField>() == null;
+    }
+
     internal static bool HotkeyPressed(RevealModifier modifier, RevealFunctionKey functionKey)
     {
         return ModifierDown(modifier) && Input.GetKeyDown(ToKeyCode(functionKey));
@@ -26,13 +49,17 @@ internal static class RevealInput
 
     private static bool ModifierDown(RevealModifier modifier)
     {
+        bool shift = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+        bool control = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
+        bool alt = Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt);
+        bool command = Input.GetKey(KeyCode.LeftCommand) || Input.GetKey(KeyCode.RightCommand);
         return modifier switch
         {
-            RevealModifier.None => true,
-            RevealModifier.Shift => Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift),
-            RevealModifier.Control => Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl),
-            RevealModifier.Alt => Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt),
-            RevealModifier.Command => Input.GetKey(KeyCode.LeftCommand) || Input.GetKey(KeyCode.RightCommand),
+            RevealModifier.None => !shift && !control && !alt && !command,
+            RevealModifier.Shift => shift && !control && !alt && !command,
+            RevealModifier.Control => control && !shift && !alt && !command,
+            RevealModifier.Alt => alt && !shift && !control && !command,
+            RevealModifier.Command => command && !shift && !control && !alt,
             _ => false
         };
     }

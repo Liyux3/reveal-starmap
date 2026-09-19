@@ -86,6 +86,8 @@ internal abstract class EnumDropdownOptionsEntry<TEnum> : OptionsEntry where TEn
             Content = choices,
             EntryColor = PUITuning.Colors.ButtonBlueStyle,
             TextStyle = PUITuning.Fonts.TextLightStyle,
+            // Layout units avoid PLib font-metric calls tied to specific TextMeshPro releases.
+            MinWidth = Math.Max(100, widestLabel * 14),
             OnOptionSelected = (_, choice) =>
             {
                 if (choice != null)
@@ -93,7 +95,7 @@ internal abstract class EnumDropdownOptionsEntry<TEnum> : OptionsEntry where TEn
                     selected = choice;
                 }
             }
-        }.SetMinWidthInCharacters(widestLabel).Build();
+        }.Build();
 
         Refresh();
         return comboBox;
