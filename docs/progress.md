@@ -122,3 +122,18 @@ entry was not reversed. No original campaign was saved by the test driver.
 Evidence is under ignored `artifacts/e2e-20260922/`: snapshots, route results, native logs,
 screenshots, isolated save files and the archived test installation. The candidate is still
 0.4.0.0; Workshop remains 0.3.1.0. Remaining acceptance: physical input and full rocket flight.
+
+## 2026-09-22: Manual Acceptance Prepared
+
+For the user's guided test, installed the clean 0.4.0.0 package as local
+`liyux.RevealStarMapManual`, title `Reveal StarMap 0.4.0 Test`, using a unique static ID
+to avoid Workshop replacement. Enabled it while leaving the old Workshop copy disabled;
+all other mod enablement arrays match the pre-setup snapshot. No live driver is installed.
+Config uses Simplified Chinese, silent TemporaryPreview, and the user's Shift+F1/F2
+bindings. Backups: `artifacts/manual-test-20260922/{mods-before,config-before}.json`.
+
+Prepared local colony `save_files/RevealStarMap-TEST/RevealStarMap-TEST-before.sav` from
+the previously tested 25-rocket campaign copy. Only its documented JSON header was
+changed: baseName, originalSaveName, a fresh colonyGuid and isAutoSave=false. The native
+save payload is byte-identical. The fresh name/GUID prevents ONI cloud/local overlap
+merging this test copy with the original campaign. User acceptance and publication remain pending.
