@@ -29,7 +29,9 @@ For details, see [behavior and data](docs/architecture.md) and
 ## Release Status
 
 Packaged locally: **0.4.0.0**. Workshop: **0.3.1.0**.
-Managed checks and native game startup pass; settings-menu interaction and live flight verification remain pending.
+Managed checks and live game integration pass, including options save/reopen, preview
+restoration, native rocket route validation and save/reload. Physical input automation
+remains unreliable, and a complete launch-and-arrival flight has not been exercised.
 See [validation status](docs/progress.md).
 
 Upload the complete mod folder, including its `translations` directory.

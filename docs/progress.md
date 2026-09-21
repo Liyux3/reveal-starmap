@@ -76,3 +76,49 @@ Quit gracefully via the app's Quit event. Restored the subscribed 0.3.1.0 files 
 enablement, verified all mods' enabled/DLC arrays against the pre-test backup, and verified
 that the user's config remained unchanged. Steam's own updater updated two other subscribed
 mods during startup; their new files and metadata were left intact.
+
+## 2026-09-22: Live Integration and Reload Fix
+
+Executed the candidate in ONI U59-744825-SCRPAN using a separate test-only local driver.
+The shipped assembly was unchanged apart from the resulting fix below; the driver used
+real PLib dialogs, their option entries and KButton callbacks, native game loading,
+serialization and ClusterGrid.GetPath. This is in-engine integration coverage, not a claim
+of reliable physical mouse automation or a complete launch/arrival flight.
+
+Passed:
+
+- Native options opened, saved and reopened with Simplified/Traditional Chinese and F7/F8
+  bindings. Saved JSON matched the selections. No PLib enum or TextMeshPro exception.
+- In an isolated eight-world save, preview kept analysis at 24/397 cells. FOW dictionary,
+  terrain visibility and spawnable hashes were unchanged by star/world/canvas toggles.
+- World/canvas exits restored the original camera state and world visit/discovery flags.
+  An out-of-canvas camera position (-10000,-10000) was constrained to (5.86,3.40) at zoom 10.
+- Permanent survey raised analysis to 397/397, with debug/sandbox flags still false and
+  terrain hashes unchanged. The native route to the same formerly hidden cell became
+  valid with 12 steps, and remained valid after native saving and cold reloading.
+- In a separate copy containing 25 real clustercrafts, a real rocket's destination selector
+  rejected a hidden cell before survey and returned a valid 16-step route afterward.
+  Analysis rose from 79/547 to 547/547. No rocket was launched during this test.
+- The actual world-side-screen button callback opened preview and changed its label from
+  `預覽地圖` to `結束預覽`; its native layout was captured.
+
+Found and fixed a real persistence bug: the preview metadata component was added only at
+OnSpawn, so SaveLoadRoot skipped its serialized data. Attach it in OnPrefabInit instead.
+Re-tested a save written during Canvas preview: after reload mode=None, zoom=20, free
+camera=false, cluster FX restored; 397 analyzed cells persisted. All 33 managed checks also
+passed with the fixed DLL.
+
+An initial driver called DoLoad directly and hit BackwallManager/GroundRenderer during
+scene teardown. It now uses the game's LoadingOverlay.Load wrapper; subsequent reload
+and cold-load tests succeeded without that exception. Steam/Mod Updater also interrupted
+early attempts. Testing used unique local mod identity and temporarily paused Mod Updater.
+
+Cleanup: all originally enabled mods and the original config were restored and compared;
+test mods moved out of Local, original Workshop DLL hash verified, original resume-save
+pointer restored, and both source campaign files match their pre-test copies byte-for-byte.
+Steam's own updates were retained; its removal of the already-disabled Worldgen Designer
+entry was not reversed. No original campaign was saved by the test driver.
+
+Evidence is under ignored `artifacts/e2e-20260922/`: snapshots, route results, native logs,
+screenshots, isolated save files and the archived test installation. The candidate is still
+0.4.0.0; Workshop remains 0.3.1.0. Remaining acceptance: physical input and full rocket flight.

@@ -9,6 +9,8 @@ without writing terrain visibility. Session-local camera snapshots restore world
 position and zoom. World/canvas previews end on reload; starmap preview may persist.
 
 `RevealSnapshotState` retains the old serialized field names for compatibility.
+It is attached during `SaveGame.OnPrefabInit`, before `SaveLoadRoot.LoadInternal` looks
+up components for deserialization. The input controller starts at `OnSpawn`, after loading.
 `RevealSnapshotStore` and `GridRevealSnapshotStore` restore legacy mutable previews once.
 New previews do not capture or restore exploration progress, preserving research earned
 while a preview is active. Camera bounds apply to the active world or full canvas.

@@ -5,7 +5,8 @@
 Standalone `Oxygen Not Included: Spaced Out` debug mod focused on temporary map
 visibility tools, with an optional global preference for permanent starmap survey.
 
-Published version: `0.3.1.0`. Local candidate: `0.4.0.0`, pending Unity UI/flight validation.
+Published version: `0.3.1.0`. Local candidate: `0.4.0.0`, live integration passed;
+physical input and full launch/arrival flight acceptance remain pending.
 Current implementation: [architecture](docs/architecture.md).
 Release evidence and remaining checks: [progress](docs/progress.md).
 

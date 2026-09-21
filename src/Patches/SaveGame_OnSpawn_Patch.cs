@@ -4,9 +4,20 @@ using RevealStarMap.State;
 
 namespace RevealStarMap.Patches;
 
-[HarmonyPatch(typeof(SaveGame), "OnSpawn")]
+[HarmonyPatch(typeof(SaveGame))]
 public static class SaveGame_OnSpawn_Patch
 {
+    // SaveLoadRoot only deserializes components already present on the prefab.
+    [HarmonyPatch("OnPrefabInit")]
+    [HarmonyPostfix]
+    public static void OnPrefabInitPostfix(SaveGame __instance)
+    {
+        if (DlcManager.FeatureClusterSpaceEnabled())
+            __instance.gameObject.AddOrGet<RevealSnapshotState>();
+    }
+
+    [HarmonyPatch("OnSpawn")]
+    [HarmonyPostfix]
     public static void Postfix(SaveGame __instance)
     {
         if (!DlcManager.FeatureClusterSpaceEnabled())
