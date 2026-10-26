@@ -59,4 +59,3 @@ Live rendering, native save loading and flight require the game.
 `./scripts/install-local.sh` installs a local copy. Enable only one Local or Workshop
 copy with the same mod ID while testing.
 
-The preview image is based on an official Spaced Out Steam store screenshot.
