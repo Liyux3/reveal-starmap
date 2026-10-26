@@ -7,7 +7,7 @@ internal sealed class RevealFunctionKeyOptionsEntry : EnumDropdownOptionsEntry<R
 {
     public RevealFunctionKeyOptionsEntry(string field)
         : base(field, RevealText.Get("setting." + field), RevealText.Get("hint." + field),
-            RevealText.Get(field == "CanvasFunctionKey" ? "category.canvas" : "category.map"), BuildChoices()) { }
+            RevealText.Category(field == "CanvasFunctionKey" ? "canvas" : "map"), BuildChoices()) { }
 
     private static IEnumerable<(string Title, string Tooltip, RevealFunctionKey Value)> BuildChoices()
     {

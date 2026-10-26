@@ -49,7 +49,8 @@ public sealed class ProbeMod : KMod.UserMod2
 
 public sealed class Driver : MonoBehaviour
 {
-    internal const string Root = "/Users/liyux/Documents/Playground/OxygenNotIncluded/reveal-starmap/artifacts/e2e-20260922";
+    internal static readonly string Root = File.ReadAllText(Path.Combine(
+        Path.GetDirectoryName(typeof(Driver).Assembly.Location), "probe-root.txt")).Trim();
     private string lastId = "";
     private float nextPoll;
     private SaveGame lastSave;
@@ -98,6 +99,8 @@ public sealed class Driver : MonoBehaviour
     {
         switch ((string)c["action"])
         {
+            case "batch":
+                return ((JArray)c["commands"]).Select(command => Run((JObject)command)).ToArray();
             case "ui":
                 return UnityEngine.Object.FindObjectsOfType<KButton>().Where(b => b.gameObject.activeInHierarchy)
                     .Select(b => new { id = b.GetInstanceID(), name = b.name, active = b.isInteractable,
@@ -138,7 +141,9 @@ public sealed class Driver : MonoBehaviour
                 if (fixture != null) UnityEngine.Object.Destroy(fixture);
                 return new { actualRocket = craft != null, start = start.ToString(), targetR = target.r, targetQ = target.q, steps = path?.Count, reason };
             case "resume-pointer":
-                SaveLoader.SetActiveSaveFilePath("/Users/liyux/Library/Application Support/unity.Klei.Oxygen Not Included/cloud_save_files/76561198853917603/Future Paradise/Future Paradise.sav");
+                string resume = (string)c["path"];
+                if (!Path.IsPathRooted(resume) || !File.Exists(resume)) throw new ArgumentException("Existing original save path required");
+                SaveLoader.SetActiveSaveFilePath(resume);
                 return "Original resume pointer restored";
             case "starmap":
                 Call("RevealStarMapRuntime", "TriggerStarmapHotkeyAction");
@@ -183,6 +188,8 @@ public sealed class Driver : MonoBehaviour
             debug = Game.Instance.debugWasUsed, sandbox = SaveGame.Instance.sandboxEnabled,
             camera = new { position = camera.transform.position.ToString(), zoom = camera.OrthographicSize,
                 targetZoom = camera.targetOrthographicSize, free = camera.FreeCameraEnabled, fx = camera.ignoreClusterFX,
+                fading = camera.activeFadeRoutine != null, inputDisabled = camera.DisableUserCameraControl,
+                focused = Application.isFocused, hotkeysReady = Call("RevealInput", "CanProcessHotkeys"),
                 maxZoom = AccessTools.Field(typeof(CameraController), "maxOrthographicSize").GetValue(camera) },
             worlds = ClusterManager.Instance.WorldContainers.Select(w => new { w.id, w.worldName, w.IsDiscovered, w.IsDupeVisited,
                 w.IsRoverVisted, offset = w.WorldOffset.ToString(), size = w.WorldSize.ToString() }).ToArray(),

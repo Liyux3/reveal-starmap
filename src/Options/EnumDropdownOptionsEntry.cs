@@ -36,7 +36,6 @@ internal abstract class EnumDropdownOptionsEntry<TEnum> : OptionsEntry where TEn
     }
 
     private readonly IList<EnumChoice> choices;
-    private readonly int widestLabel;
     private EnumChoice? selected;
     private GameObject? comboBox;
 
@@ -65,12 +64,10 @@ internal abstract class EnumDropdownOptionsEntry<TEnum> : OptionsEntry where TEn
         }
 
         var builtChoices = new List<EnumChoice>();
-        int longest = 1;
         foreach ((string optionTitle, string optionTooltip, TEnum optionValue) in options)
         {
             string resolvedTitle = string.IsNullOrWhiteSpace(optionTitle) ? optionValue.ToString() : optionTitle;
             builtChoices.Add(new EnumChoice(resolvedTitle, optionTooltip ?? string.Empty, optionValue));
-            longest = Math.Max(longest, resolvedTitle.Trim().Length);
         }
 
         if (builtChoices.Count == 0)
@@ -79,7 +76,6 @@ internal abstract class EnumDropdownOptionsEntry<TEnum> : OptionsEntry where TEn
         }
 
         choices = builtChoices;
-        widestLabel = longest;
         selected = builtChoices[0];
     }
 
@@ -93,7 +89,7 @@ internal abstract class EnumDropdownOptionsEntry<TEnum> : OptionsEntry where TEn
             EntryColor = PUITuning.Colors.ButtonBlueStyle,
             TextStyle = PUITuning.Fonts.TextLightStyle,
             // Layout units avoid PLib font-metric calls tied to specific TextMeshPro releases.
-            MinWidth = Math.Max(120, widestLabel * 12),
+            MinWidth = 200,
             MaxRowsShown = 8,
             OnOptionSelected = (_, choice) =>
             {

@@ -1,10 +1,14 @@
 using System.Reflection;
+using System.IO.Compression;
+using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
+using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using RevealStarMap;
 
-string gamePath = args.Single();
+string gamePath = args[0];
+string repo = args.Length > 1 ? args[1] : Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../.."));
 AssemblyLoadContext.Default.Resolving += (_, name) =>
 {
     string path = Path.Combine(gamePath, name.Name + ".dll");
@@ -20,6 +24,51 @@ void Check(bool value, string message)
 }
 
 var mod = typeof(RevealStarMapSettings).Assembly;
+string version = Regex.Match(File.ReadAllText(Path.Combine(repo, "mod_info.yaml")), @"(?m)^version: (\S+)").Groups[1].Value;
+Check(mod.GetName().Version!.ToString() == version, "Assembly identity matches the released package version");
+Check(mod.GetManifestResourceNames().OrderBy(s => s).SequenceEqual(
+    new[] { "RevealStarMap.en.json", "RevealStarMap.zh-CN.json", "RevealStarMap.zh-TW.json" }),
+    "All three shipped languages are embedded for resilient offline fallback");
+Check(Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(Path.Combine(repo, "vendor/PLib.dll")))).ToLowerInvariant() ==
+    "b0144f909e00044ebd3b5880676ceb3aba756d579ea3a63aebd7a34b0777fda6",
+    "Build uses the reviewed PLib binary");
+using (var archive = ZipFile.OpenRead(Path.Combine(repo, "dist", "RevealStarMap-" + version + ".zip")))
+{
+    string package = Path.Combine(repo, "dist", "liyux.RevealStarMap");
+    string[] contents = Directory.GetFiles(package, "*", SearchOption.AllDirectories)
+        .Select(p => "liyux.RevealStarMap/" + Path.GetRelativePath(package, p).Replace('\\', '/')).OrderBy(p => p).ToArray();
+    var entries = archive.Entries.Where(e => !e.FullName.EndsWith('/')).OrderBy(e => e.FullName).ToArray();
+    Check(entries.Select(e => e.FullName).SequenceEqual(contents) && entries.All(e =>
+    {
+        using var stream = e.Open();
+        return SHA256.HashData(stream).SequenceEqual(SHA256.HashData(File.ReadAllBytes(Path.Combine(repo, "dist", e.FullName))));
+    }), "Release archive has exactly the packaged files and matching bytes");
+    Check(contents.Contains("liyux.RevealStarMap/PLib.LICENSE.txt") &&
+        contents.All(p => !p.Contains("LiveProbe") && !p.Contains("Assembly-CSharp") && !p.Contains("System.Security")),
+        "Package includes dependency license and excludes game assemblies and test drivers");
+}
+
+// Legacy serialized lists store Q then R; AxialI's constructor takes R then Q.
+var stateType = mod.GetType("RevealStarMap.State.RevealSnapshotState", true)!;
+var legacyState = RuntimeHelpers.GetUninitializedObject(stateType);
+void StateField(string name, object? value) => stateType.GetField(name, BindingFlags.NonPublic | BindingFlags.Instance)!.SetValue(legacyState, value);
+bool StateFlag(string name) => (bool)stateType.GetProperty(name, BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(legacyState)!;
+StateField("hasSnapshot", true);
+StateField("snapshotQs", new List<int> { 7, -4 });
+StateField("snapshotRs", new List<int> { -2, 9 });
+StateField("snapshotPoints", new List<float> { 25, 140 });
+var legacyMap = (Dictionary<AxialI, float>)stateType.GetMethod("RestoreSnapshot", BindingFlags.NonPublic | BindingFlags.Instance)!.Invoke(legacyState, null)!;
+Check(StateFlag("HasSnapshot") && legacyMap[new AxialI(-2, 7)] == 25f && legacyMap[new AxialI(9, -4)] == 140f,
+    "Legacy asymmetric exploration coordinates restore with R/Q in the native order");
+StateField("snapshotRs", null);
+Check(!StateFlag("HasSnapshot"), "Incomplete legacy exploration snapshots are rejected safely");
+StateField("hasGridSnapshot", true);
+StateField("gridSnapshotWidth", 65536);
+StateField("gridSnapshotHeight", 65536);
+StateField("gridVisibleSnapshot", Array.Empty<byte>());
+StateField("gridSpawnableSnapshot", Array.Empty<byte>());
+Check(!StateFlag("HasGridSnapshot"), "Legacy canvas dimensions cannot overflow into an accepted empty snapshot");
+
 var survey = mod.GetType("RevealStarMap.Runtime.StarMapSurvey", true)!;
 var prepare = survey.GetMethod("Prepare", BindingFlags.NonPublic | BindingFlags.Static)!;
 (Dictionary<AxialI, float> Map, int Changed) Prepare(Dictionary<AxialI, float> map,
@@ -142,6 +191,9 @@ Check(Resolve(UiLanguage.Automatic, "zh_Hant_HK") == "zh-TW" &&
     Resolve(UiLanguage.Automatic, "zh-CN") == "zh-CN" && Resolve(UiLanguage.English, "zh") == "en",
     "Chinese locale variants and explicit language override resolve consistently");
 Check(Resolve(UiLanguage.Automatic, "../../test") == "en", "Locale names stay inside the translation directory");
+Check(Resolve(UiLanguage.Automatic, "zh-Hans-TW") == "zh-CN" &&
+    Resolve(UiLanguage.Automatic, "zh-Hant-CN") == "zh-TW",
+    "Explicit Chinese script takes precedence over region");
 var getText = textType.GetMethod("GetForLanguage", BindingFlags.NonPublic | BindingFlags.Static)!;
 string Text(string key, string code) => (string)getText.Invoke(null, new object[] { key, code })!;
 var translationDirectory = Path.Combine(AppContext.BaseDirectory, "translations");
@@ -156,6 +208,16 @@ foreach (string code in new[] { "en", "zh-CN", "zh-TW" })
     Check(catalog.All(p => Text(p.Key, code) == p.Value), code + " shipped catalog loads with exact text");
 }
 Check(Text("world.preview", "missing-locale") == english["world.preview"], "Missing translations fall back to embedded English");
+var catalogs = (System.Collections.IDictionary)textType.GetField("Catalogs", BindingFlags.NonPublic | BindingFlags.Static)!.GetValue(null)!;
+string hiddenTranslations = translationDirectory + "." + Guid.NewGuid().ToString("N");
+Directory.Move(translationDirectory, hiddenTranslations);
+try
+{
+    catalogs.Clear();
+    Check(Text("world.preview", "zh-CN") == "预览地图" && Text("world.preview", "zh-TW") == "預覽地圖",
+        "Chinese remains translated when external catalogs are missing");
+}
+finally { Directory.Move(hiddenTranslations, translationDirectory); catalogs.Clear(); }
 var languageEntryType = mod.GetType("RevealStarMap.Options.LanguageOptionsEntry", true)!;
 var languageEntry = Activator.CreateInstance(languageEntryType, "Language")!;
 languageEntryType.GetProperty("Value")!.SetValue(languageEntry, "TraditionalChinese");
@@ -165,6 +227,14 @@ defaults.OnOptionsChanged();
 var chineseEntry = Activator.CreateInstance(entryType, "StarMapAction")!;
 Check((string)entryType.GetProperty("Title")!.GetValue(chineseEntry)! == "快捷鍵行為",
     "Reopened options use the saved Traditional Chinese language");
+var category = textType.GetMethod("Category", BindingFlags.NonPublic | BindingFlags.Static)!;
+foreach (var preference in new[] { UiLanguage.English, UiLanguage.SimplifiedChinese, UiLanguage.TraditionalChinese })
+{
+    new RevealStarMapSettings { Language = preference }.OnOptionsChanged();
+    var keys = new[] { "map", "canvas", "preferences" }.Select(name => (string)category.Invoke(null, new object[] { name })!).ToArray();
+    Check(keys.SequenceEqual(keys.OrderBy(k => k)) && keys.Select(k => Strings.Get(k).String).All(s => !s.StartsWith("STRINGS.")),
+        preference + " options retain Starmap, Canvas, Preferences order with native labels");
+}
 
 Console.WriteLine($"{checks} managed integration checks passed. Unity rendering, dialogs and live rocket flight require in-game testing.");
 record SurveyCell(int R, int Q, float Points);

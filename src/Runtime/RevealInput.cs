@@ -11,6 +11,11 @@ internal static class RevealInput
 
     internal static bool CanProcessHotkeys()
     {
+        CameraController? camera = CameraController.Instance;
+        if (!Application.isFocused || Game.Instance == null || Game.Instance.IsLoading() ||
+            !Grid.IsInitialized() || camera == null || camera.activeFadeRoutine != null)
+            return false;
+
         if (KScreenManager.Instance != null)
         {
             foreach (KScreen screen in ScreensRef(KScreenManager.Instance))

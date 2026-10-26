@@ -1,11 +1,11 @@
 "workshopitem"
 {
 	"appid"		"457140"
-	"contentfolder"		"/Users/liyux/Library/Application Support/RevealStarMapWorkshopUpload/candidates/0.4.0.0"
+	"contentfolder"		"/Users/liyux/Documents/Playground/OxygenNotIncluded/reveal-starmap/dist/liyux.RevealStarMap"
 	"previewfile"		"/Users/liyux/Documents/Playground/OxygenNotIncluded/reveal-starmap/preview.png"
 	"visibility"		"0"
 	"title"		"Reveal StarMap"
 	"description"		"Shift + F7 previews the starmap. Shift + F8 previews the full canvas. Press the same shortcut again to return. Select an asteroid and use Preview map to inspect its terrain.\n\nConfigure shortcuts, language and preferences in Mods > Options from the main menu. Preferences apply across all saves. Silent, reversible previews are the default. Includes English, Simplified Chinese and Traditional Chinese. Requires Spaced Out.\n\nShift + F7 预览星图，Shift + F8 预览完整画布，再按相同快捷键返回。选中小行星后，可通过预览地图查看地形。快捷键、语言与偏好只需在主菜单的模组选项中配置一次，适用于所有存档。默认静默、可逆预览。支持英文、简体中文与繁体中文，需要 Spaced Out。"
-	"changenote"		"v0.4.0: Global mod preferences with quiet defaults; consistent English, Simplified Chinese and Traditional Chinese; streamlined controls and configurable advanced behavior."
+	"changenote"		"v0.4.1: Global preferences and three languages; reliable preview camera restoration and zoom limits; corrected legacy exploration migration; embedded translations and complete release packaging."
 	"publishedfileid"		"3695988693"
 }

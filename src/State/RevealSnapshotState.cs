@@ -61,7 +61,8 @@ public sealed class RevealSnapshotState : KMonoBehaviour
     [Serialize]
     private byte[] gridSpawnableSnapshot = Array.Empty<byte>();
 
-    internal bool HasSnapshot => hasSnapshot && snapshotQs.Count == snapshotRs.Count && snapshotQs.Count == snapshotPoints.Count;
+    internal bool HasSnapshot => hasSnapshot && snapshotQs != null && snapshotRs != null && snapshotPoints != null &&
+        snapshotQs.Count == snapshotRs.Count && snapshotQs.Count == snapshotPoints.Count;
 
     internal RevealPreviewMode PreviewMode => (RevealPreviewMode)previewMode;
 
@@ -74,7 +75,8 @@ public sealed class RevealSnapshotState : KMonoBehaviour
     internal bool HasGridSnapshot => hasGridSnapshot &&
         gridSnapshotWidth > 0 &&
         gridSnapshotHeight > 0 &&
-        gridVisibleSnapshot.Length == gridSnapshotWidth * gridSnapshotHeight &&
+        gridVisibleSnapshot != null && gridSpawnableSnapshot != null &&
+        gridVisibleSnapshot.LongLength == (long)gridSnapshotWidth * gridSnapshotHeight &&
         gridSpawnableSnapshot.Length == gridVisibleSnapshot.Length;
 
     internal bool GridRevealApplied => gridRevealApplied;
@@ -100,7 +102,8 @@ public sealed class RevealSnapshotState : KMonoBehaviour
         var restored = new Dictionary<AxialI, float>(snapshotQs.Count);
         for (int i = 0; i < snapshotQs.Count; i++)
         {
-            restored[new AxialI(snapshotQs[i], snapshotRs[i])] = snapshotPoints[i];
+            // AxialI's constructor is (R, Q); the legacy lists are explicitly Q then R.
+            restored[new AxialI(snapshotRs[i], snapshotQs[i])] = snapshotPoints[i];
         }
 
         return restored;

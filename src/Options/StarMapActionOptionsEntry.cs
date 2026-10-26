@@ -4,7 +4,7 @@ internal sealed class StarMapActionOptionsEntry : EnumDropdownOptionsEntry<StarM
 {
     public StarMapActionOptionsEntry(string field)
         : base(field, RevealText.Get("setting." + field), RevealText.Get("hint." + field),
-            RevealText.Get("category.map"), BuildEnumChoices())
+            RevealText.Category("map"), BuildEnumChoices())
     {
     }
 }

@@ -27,6 +27,9 @@ internal sealed class RevealStarMapController : KMonoBehaviour
             Initialize();
         }
 
+        if (SaveGame.Instance == null || Game.Instance == null || Game.Instance.IsLoading() ||
+            !DlcManager.FeatureClusterSpaceEnabled()) return;
+
         RevealSessionCoordinator.TryCompletePendingCameraSafetyMigration();
 
         if (settingsRevision != RevealStarMapSettingsManager.Revision)
@@ -38,11 +41,6 @@ internal sealed class RevealStarMapController : KMonoBehaviour
             if (conflict != null && conflict != reportedConflict)
                 RevealSessionCoordinator.Warn("error.conflict", conflict);
             reportedConflict = conflict;
-        }
-
-        if (SaveGame.Instance == null || !DlcManager.FeatureClusterSpaceEnabled())
-        {
-            return;
         }
 
         if (!RevealInput.CanProcessHotkeys())
@@ -75,6 +73,5 @@ internal sealed class RevealStarMapController : KMonoBehaviour
         initialized = true;
         RevealStarMapSettingsManager.Reload();
         RevealSessionCoordinator.InitializeAndMigrate();
-
     }
 }

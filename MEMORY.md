@@ -1,12 +1,30 @@
 # Reveal StarMap Memory
 
+## Intent
+
+User request, 2026-10-26, verbatim:
+
+> 本地最新的是什么，你再都从头到尾都看好，正式做到最优雅漂亮的状态并提交。
+
+Earlier user wording retained for this review:
+
+> 不需要每个存档都要弄啊，就只需要你的像这种配置的话，其实只需要在模的那个对应的 config 菜单里面
+
+> 所有状态都应该有黑边界镜头限制，缩放应该也有对应的。
+
+Criteria: shared configuration; quiet reversible defaults; rare permanent behavior in
+settings; consistent English and both Chinese variants; native controls; world/canvas
+bounds; reliable restoration and migration; clean packaging and verified commits.
+
 ## Overview
 
 Standalone `Oxygen Not Included: Spaced Out` debug mod focused on temporary map
 visibility tools, with an optional global preference for permanent starmap survey.
 
-Published version: `0.3.1.0`. Local candidate: `0.4.0.0`, live integration passed;
-physical input and full launch/arrival flight acceptance remain pending.
+Last verified published version: `0.3.1.0`. Local candidate: `0.4.1.0`, with 46 managed
+checks and 17 targeted native assertions passed. System Shift+F1 starts preview;
+the remaining keyboard/reload acceptance was interrupted by a concurrent native task.
+0.4.0.0 previously passed route and save/reload integration; full flight remains untested.
 Current implementation: [architecture](docs/architecture.md).
 Release evidence and remaining checks: [progress](docs/progress.md).
 
@@ -48,8 +66,8 @@ Persistent save state:
 Build and dependency policy:
 
 - `vendor/PLib.dll` is the pinned compatibility copy, currently `PLib 4.21`
-- `scripts/build.sh` and `src/OniModStarter.csproj` prefer vendored `PLib`
-  before any installed mod copy
+- `scripts/build.sh` and `src/OniModStarter.csproj` use the pinned vendor copy;
+  `scripts/check.sh` is the final build, managed and package gate
 - target framework is `net48` to match current ONI / Harmony requirements
 
 Config UI policy:
@@ -66,6 +84,8 @@ Runtime test policy:
 - only keep one active `Reveal StarMap` instance during real-user testing
   because duplicate `Local` and `Steam` entries with the same `staticID`
   confuse ONI mod state and options UI
+- check the shared `../.codex/oni-live-session.json` record and other active ONI
+  tests before using the game process; preserve their process and mod profile
 
 ## Progress Log
 

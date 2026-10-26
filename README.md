@@ -28,26 +28,33 @@ For details, see [behavior and data](docs/architecture.md) and
 
 ## Release Status
 
-Packaged locally: **0.4.0.0**. Workshop: **0.3.1.0**.
-Managed checks and live game integration pass, including options save/reopen, preview
-restoration, native rocket route validation and save/reload. Physical input automation
-remains unreliable, and a complete launch-and-arrival flight has not been exercised.
+Local release: **0.4.1.0**. Last verified Workshop release: **0.3.1.0**.
+The local release has not been uploaded to Workshop.
+46 managed checks and targeted native regressions pass, including options save/reopen,
+rapid preview transitions, camera restoration and zoom limits with Bigger Camera Zoom Out.
+Earlier integration covered native rocket routes and save/reload. System keyboard
+coverage is partial, and a complete launch-and-arrival flight has not been exercised.
 See [validation status](docs/progress.md).
 
-Upload the complete mod folder, including its `translations` directory.
+Upload the complete `dist/liyux.RevealStarMap` folder. The build also creates a
+versioned ZIP with the same content.
 
 ## Development
 
 ```sh
 ./scripts/bootstrap-dotnet.sh
-./scripts/build.sh
-.tooling/dotnet/dotnet run --project tests/Verify.csproj -- \
-  "$HOME/Library/Application Support/Steam/steamapps/common/OxygenNotIncluded/OxygenNotIncluded.app/Contents/Resources/Data/Managed"
+./scripts/check.sh
 ```
+
+An installed .NET SDK can be used directly; bootstrap is needed only when none is available.
+Set `ONI_MANAGED_PATH` for a nondefault game installation. The build uses the pinned
+PLib in `vendor`, embeds all three languages and creates the upload folder and ZIP together.
+Previous generated folders are moved to the system Trash.
 
 The verifier uses the built DLL, actual PLib and ONI managed types. It covers analysis
 preservation, serialization, settings migration, typed option write-back and all
-translation catalogs. Live rendering, native save loading and flight require the game.
+translation catalogs, legacy exploration coordinates and archive contents.
+Live rendering, native save loading and flight require the game.
 
 `./scripts/install-local.sh` installs a local copy. Enable only one Local or Workshop
 copy with the same mod ID while testing.

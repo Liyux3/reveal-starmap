@@ -94,7 +94,6 @@ public sealed class RevealStarMapSettings : IOptions
         if (!Enum.IsDefined(typeof(RevealFunctionKey), FunctionKey)) FunctionKey = RevealFunctionKey.F7;
         if (!Enum.IsDefined(typeof(RevealFunctionKey), CanvasFunctionKey)) CanvasFunctionKey = RevealFunctionKey.F8;
     }
-
 }
 
 internal static class RevealStarMapSettingsManager
@@ -120,14 +119,16 @@ internal static class RevealStarMapSettingsManager
 
     internal static void Reload()
     {
+        RevealStarMapSettings loaded;
         try
         {
-            Apply(POptions.ReadSettings<RevealStarMapSettings>() ?? new RevealStarMapSettings());
+            loaded = POptions.ReadSettings<RevealStarMapSettings>() ?? new RevealStarMapSettings();
         }
         catch (Exception exception)
         {
-            current = new RevealStarMapSettings();
+            loaded = new RevealStarMapSettings();
             Debug.LogError($"{RevealStarMapMod.Tag} Could not read config.json; defaults are active for this session. {exception}");
         }
+        Apply(loaded);
     }
 }

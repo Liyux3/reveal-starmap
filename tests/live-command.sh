@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
-ROOT="$(cd "$(dirname "$0")/.." && pwd)/artifacts/e2e-20260922"
+ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+ROOT="${LIVE_TEST_ROOT:-$ROOT_DIR/artifacts/live-tests}"
 TMP="$(mktemp "$ROOT/request.XXXXXX")"
 ID="$(basename "$TMP")"
 jq -n --argjson command "$1" --arg id "$ID" '$command + {id:$id}' > "$TMP"

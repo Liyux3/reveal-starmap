@@ -137,3 +137,82 @@ the previously tested 25-rocket campaign copy. Only its documented JSON header w
 changed: baseName, originalSaveName, a fresh colonyGuid and isAutoSave=false. The native
 save payload is byte-identical. The fresh name/GUID prevents ONI cloud/local overlap
 merging this test copy with the original campaign. User acceptance and publication remain pending.
+
+## 2026-10-26: Release Review Plan
+
+Follows [user intent](../MEMORY.md#intent): shared preferences, quiet native interaction,
+consistent copy, bounded cameras, reliable restore, and clean delivery.
+
+Review the complete source and native contracts; fix transition/zoom and migration
+defects; unify settings presentation; remove personal build-path assumptions and pin
+dependencies. Run the final managed gate and targeted in-engine regressions, record
+remaining limits, package and commit. Reuse September evidence for unchanged paths.
+
+## 2026-10-26: 0.4.1 Review and Delivery
+
+Reviewed production sources, options, translations, serialization, build scripts and
+the relevant native ONI/PLib contracts. The preceding local candidate was 0.4.0.0 at
+ca0d24e. Prepared 0.4.1.0 with these corrections:
+
+- Use native synchronous `SetActiveWorld` and `SnapTo` for entering/restoring world
+  previews. The preceding asynchronous fade callback could run after preview ended.
+- Capture actual displayed zoom, clamp both current and target preview zoom, and guard
+  loading/fade/unfocused input. Preserve shortcuts while the stock starmap disables
+  colony camera control; modal and text-entry guards still apply.
+- Restore legacy exploration in `(R, Q)` order. The old Q/R lists were transposed.
+  Reject incomplete snapshots and dimensions whose multiplication would overflow.
+- Stabilize Starmap, Canvas, Preferences ordering across languages and align dropdown
+  widths using layout units. Embed English and both Chinese catalogs; missing external
+  files retain their language. Script subtags take precedence over region.
+- Separate config-read errors from UI callback errors so callbacks cannot silently
+  reset preferences. Preserve shared settings, quiet defaults and the native UI.
+- Resolve the real installed SDK, remove personal build-path/installed-PLib fallbacks,
+  support stock macOS Bash, add dependency licensing and explicit assembly version.
+  Stage the package and matching ZIP together; retain prior generated folders in Trash.
+  `scripts/check.sh` is the build, shell and managed/package gate. Keep the existing
+  project filename so the parent solution's reference stays valid.
+
+Validation: the final gate passed 46 managed checks and ShellCheck. New cases cover
+legacy asymmetric coordinates, incomplete/overflowed snapshots, category order,
+embedded Chinese fallback and package/version/dependency identity. Global SDK 10 first
+failed restoring .NET 8 references because disk space was exhausted; the existing local
+SDK 8.0.419 completed the gate. Transparent compression reclaimed 235.2 MiB from the
+project's regenerable SDK files, with byte hashes verified unchanged.
+
+Targeted native validation ran in ONI U59-744825-SCRPAN with the unmodified release DLL,
+separate local driver and Bigger Camera Zoom Out. Evidence and the 17-assertion receipt
+are in ignored `artifacts/e2e-20261026/`:
+
+- Real PLib options opened, saved and reopened in English and both Chinese variants.
+  Inspected English/Simplified Chinese layout; native option values and preserved F1/F2
+  shortcuts matched. Version 0.4.1.0 appeared correctly in the native dialog.
+- Same-frame world on/off and World 1 -> World 2 -> Canvas -> off restored world 0,
+  position (190,120,-100), zoom/target 10 and original maximum zoom 200, with no fade.
+- Forced zoom 10000 and extreme positions constrained to world zoom 96.8 and canvas
+  zoom 704. Both displayed/target values matched the limits; free camera remained false.
+- Fog dictionary, terrain visibility/spawnable hashes, discovery/visit records and
+  debug/sandbox flags matched across the successful preview cases. This particular
+  fixture contains 47 worlds and 14077 already analyzed cells; earlier September
+  evidence supplies the uncharted-map and rocket-route coverage.
+- The real system Shift+F1 event began StarMap preview after a native mod-difference
+  modal was dismissed. The modal correctly blocked it beforehand. A native selected
+  planet displayed the Traditional Chinese preview button.
+
+The shared game was restarted by an active Chaotic Eras task before shortcut-off,
+canvas keyboard and final save/reload acceptance completed. Their timed-out commands
+are retained as incomplete, not passes. An earlier startup also hit native KMod report
+errors before this DLL loaded. No product crash occurred in the completed isolated run.
+Full rocket launch/arrival remains untested; no cross-platform runtime claim is made.
+
+Preserved the source campaign hash, restored this mod's exact original config and
+retired its temporary driver to system Trash. Left the other task's active process and
+mod profile intact. Original user mod arrays/player preferences are retained in the
+run folder and indexed by the shared session record for restoration after that task
+releases the game. The local manual candidate is updated to 0.4.1; its current enabled
+state is controlled by the other task's validation profile.
+
+Built `dist/liyux.RevealStarMap` and `dist/RevealStarMap-0.4.1.0.zip`; archive members
+match the folder byte-for-byte. DLL SHA-256:
+`62d36905a9abe88d92cbfd1cee6aee93c3316db8821a77a78d12f5eebbb596d7`.
+Workshop upload metadata now targets this package. No upload or public release was
+performed during this review; last verified Workshop version remains 0.3.1.0.

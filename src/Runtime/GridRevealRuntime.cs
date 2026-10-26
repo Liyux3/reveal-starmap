@@ -29,20 +29,10 @@ internal static class GridRevealRuntime
         float zoom = ComputeOrthoSize(world.Width, world.Height);
 
         ManagementMenu.Instance?.CloseAll();
-        if (controller == null)
-        {
-            ClusterManager.Instance.SetActiveWorld(world.id);
-            return;
-        }
-
-        if (ClusterManager.Instance.activeWorldId != world.id)
-        {
-            controller.ActiveWorldStarWipe(world.id, focus, zoom);
-        }
-        else
-        {
-            controller.SnapTo(focus, zoom);
-        }
+        // Match the stock Oversee Planetoid action: switch synchronously, then frame it.
+        // No delayed star-wipe callback can outlive an ended or superseded preview.
+        ClusterManager.Instance.SetActiveWorld(world.id);
+        controller?.SnapTo(focus, zoom);
     }
 
     internal static float ComputeOrthoSize(int width, int height)

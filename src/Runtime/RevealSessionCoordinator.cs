@@ -96,6 +96,7 @@ internal static class RevealSessionCoordinator
 
     internal static void ToggleStarMap()
     {
+        if (Game.Instance == null || Game.Instance.IsLoading()) return;
         if (ActiveMode == RevealPreviewMode.StarMap)
         {
             EndPreview("status.star.off");
@@ -108,7 +109,7 @@ internal static class RevealSessionCoordinator
 
     internal static void ToggleCanvas()
     {
-        if (!Grid.IsInitialized())
+        if (Game.Instance == null || Game.Instance.IsLoading() || !Grid.IsInitialized())
         {
             return;
         }
@@ -125,7 +126,7 @@ internal static class RevealSessionCoordinator
 
     internal static void ToggleWorld(WorldContainer world)
     {
-        if (world == null || !Grid.IsInitialized())
+        if (world == null || Game.Instance == null || Game.Instance.IsLoading() || !Grid.IsInitialized())
         {
             return;
         }
@@ -202,6 +203,7 @@ internal static class RevealSessionCoordinator
 
     internal static void EnforcePreviewZoomLimit(CameraController controller)
     {
+        if (Game.Instance == null || Game.Instance.IsLoading()) return;
         float limit;
         if (ActiveMode == RevealPreviewMode.Canvas && Grid.IsInitialized())
         {
@@ -223,6 +225,8 @@ internal static class RevealSessionCoordinator
         }
 
         MaxOrthographicSizeRef(controller) = limit;
+        if (controller.targetOrthographicSize > limit || controller.OrthographicSize > limit)
+            controller.SnapTo(controller.transform.GetPosition(), Mathf.Min(controller.targetOrthographicSize, limit));
     }
 
     private static void BeginPreview(RevealPreviewMode mode, int worldId)
@@ -336,7 +340,7 @@ internal static class RevealSessionCoordinator
 
         cameraSnapshotValid = true;
         cameraSnapshotPosition = controller.transform.GetPosition();
-        cameraSnapshotOrthographicSize = controller.targetOrthographicSize;
+        cameraSnapshotOrthographicSize = controller.OrthographicSize;
         cameraSnapshotMaxOrthographicSize = MaxOrthographicSizeRef(controller);
         cameraSnapshotWorldId = ClusterManager.Instance != null ? ClusterManager.Instance.activeWorldId : -1;
     }
@@ -358,21 +362,12 @@ internal static class RevealSessionCoordinator
 
             controller.FreeCameraEnabled = false;
             SetExactMaxOrthographicSize(controller, cameraSnapshotMaxOrthographicSize);
-            if (cameraSnapshotWorldId >= 0 &&
-                ClusterManager.Instance != null &&
-                ClusterManager.Instance.activeWorldId != cameraSnapshotWorldId)
+            if (ClusterManager.Instance != null && ClusterManager.Instance.GetWorld(cameraSnapshotWorldId) != null)
             {
-                controller.ActiveWorldStarWipe(
-                    cameraSnapshotWorldId,
-                    cameraSnapshotPosition,
-                    cameraSnapshotOrthographicSize,
-                    ConstrainCameraToActiveWorld);
-            }
-            else
-            {
+                ClusterManager.Instance.SetActiveWorld(cameraSnapshotWorldId);
                 controller.SnapTo(cameraSnapshotPosition, cameraSnapshotOrthographicSize);
-                ConstrainCameraToActiveWorld();
             }
+            ConstrainCameraToActiveWorld();
         }
 
         cameraSnapshotValid = false;

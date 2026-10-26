@@ -8,7 +8,8 @@ namespace RevealStarMap;
 
 internal static class RevealText
 {
-    private static readonly Dictionary<string, string> English = ReadEnglish();
+    private static readonly Dictionary<string, string> English = ReadEmbedded("en") ??
+        throw new InvalidOperationException("Reveal StarMap's embedded English catalog is missing.");
     private static readonly Dictionary<string, Dictionary<string, string>> Catalogs =
         new Dictionary<string, Dictionary<string, string>>(StringComparer.OrdinalIgnoreCase);
 
@@ -21,6 +22,15 @@ internal static class RevealText
         catch (FormatException) { return string.Format(CultureInfo.CurrentCulture, English[key], values); }
     }
 
+    internal static string Category(string name)
+    {
+        // PLib sorts category keys before resolving them through the native string table.
+        string suffix = name == "map" ? "A_STARMAP" : name == "canvas" ? "B_CANVAS" : "C_PREFERENCES";
+        string key = "STRINGS.REVEALSTARMAP.CATEGORIES." + suffix;
+        Strings.Add(key, Get("category." + name));
+        return key;
+    }
+
     internal static string ResolveLanguage(UiLanguage preference, string? gameCode)
     {
         if (preference == UiLanguage.English) return "en";
@@ -30,13 +40,19 @@ internal static class RevealText
         foreach (char c in code)
             if (!char.IsLetterOrDigit(c) && c != '-') return "en";
         if (code == "zh" || code.StartsWith("zh-", StringComparison.Ordinal))
-            return code.Contains("tw") || code.Contains("hk") || code.Contains("mo") || code.Contains("hant")
+        {
+            string[] parts = code.Split('-');
+            if (Array.IndexOf(parts, "hans") >= 0) return "zh-CN";
+            if (Array.IndexOf(parts, "hant") >= 0) return "zh-TW";
+            return Array.IndexOf(parts, "tw") >= 0 || Array.IndexOf(parts, "hk") >= 0 || Array.IndexOf(parts, "mo") >= 0
                 ? "zh-TW" : "zh-CN";
+        }
         return string.IsNullOrEmpty(code) ? "en" : code;
     }
 
     internal static string GetForLanguage(string key, string code)
     {
+        code = ResolveLanguage(UiLanguage.Automatic, code);
         if (!English.TryGetValue(key, out string fallback)) return RevealStarMapMod.ModName;
         if (code == "en") return fallback;
         if (!Catalogs.TryGetValue(code, out var catalog))
@@ -47,11 +63,12 @@ internal static class RevealText
         return catalog.TryGetValue(key, out string text) && !string.IsNullOrWhiteSpace(text) ? text : fallback;
     }
 
-    private static Dictionary<string, string> ReadEnglish()
+    private static Dictionary<string, string>? ReadEmbedded(string code)
     {
-        using var stream = typeof(RevealText).Assembly.GetManifestResourceStream("RevealStarMap.en.json");
-        using var reader = new StreamReader(stream!);
-        return JsonConvert.DeserializeObject<Dictionary<string, string>>(reader.ReadToEnd())!;
+        using var stream = typeof(RevealText).Assembly.GetManifestResourceStream("RevealStarMap." + code + ".json");
+        if (stream == null) return null;
+        using var reader = new StreamReader(stream);
+        return JsonConvert.DeserializeObject<Dictionary<string, string>>(reader.ReadToEnd());
     }
 
     private static Dictionary<string, string> LoadCatalog(string code)
@@ -67,6 +84,6 @@ internal static class RevealText
         catch (IOException) { }
         catch (UnauthorizedAccessException) { }
         catch (JsonException) { }
-        return English;
+        return ReadEmbedded(code) ?? ReadEmbedded(code.Split('-')[0]) ?? English;
     }
 }
