@@ -42,6 +42,7 @@ cp "$BUILD_DIR/RevealStarMap.dll" "$BUILD_DIR/RevealStarMap.pdb" "$ROOT_DIR/mod.
   "$ROOT_DIR/mod_info.yaml" "$PLIB_DLL" "$ROOT_DIR/vendor/PLib.LICENSE.txt" "$PACKAGE/"
 cp "$ROOT_DIR"/translations/*.json "$PACKAGE/translations/"
 (cd "$STAGE" && zip -qrX "RevealStarMap-$VERSION.zip" liyux.RevealStarMap)
+(cd "$PACKAGE" && zip -qrX "$STAGE/RevealStarMap-$VERSION-workshop.zip" .)
 
 # Retain the previous generated output in the system Trash for easy rollback.
 if [[ -e "$DIST_DIR" ]]; then
@@ -51,4 +52,5 @@ if [[ -e "$DIST_DIR" ]]; then
 fi
 mv "$PACKAGE" "$DIST_DIR"
 mv "$STAGE/RevealStarMap-$VERSION.zip" "$ROOT_DIR/dist/RevealStarMap-$VERSION.zip"
+mv "$STAGE/RevealStarMap-$VERSION-workshop.zip" "$ROOT_DIR/dist/RevealStarMap-$VERSION-workshop.zip"
 printf 'Built %s\nPackage: %s\nArchive: %s\n' "$VERSION" "$DIST_DIR" "$ROOT_DIR/dist/RevealStarMap-$VERSION.zip"

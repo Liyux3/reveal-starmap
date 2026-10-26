@@ -68,3 +68,10 @@ notice, moves the preceding generated folder to system Trash and emits a version
 `check.sh` builds once, lints shell scripts when ShellCheck is installed, and runs the
 managed verifier against actual game assemblies. Assembly and package versions,
 embedded catalogs, PLib identity and every archive file are verified together.
+
+Workshop delivery is a separate contract: current `KMod.Steam.MakeMod` requires
+`File.Exists(GetItemInstallInfo(...))`, then constructs a ZIP file source. A successful
+Steam depot upload/download alone is insufficient. Build emits a root-level
+`-workshop.zip` alongside the enclosing-folder Local-install archive; managed checks
+validate both member layouts and hashes. Use the official uploader or a legacy ZIP
+publication path, with creator app 636750 distinct from consumer game 457140.

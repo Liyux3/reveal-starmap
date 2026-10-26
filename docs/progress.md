@@ -265,3 +265,48 @@ No second submission was made. Staged the exact nine-file package outside Docume
 `~/Library/Application Support/RevealStarMapWorkshopUpload/candidates/0.4.1.0`, verified
 every file hash and retained the receipt. Resume by dismissing the broad Documents
 request, reconcile the failed/pending upload, select this staging directory and submit.
+
+## 2026-10-26: Publication Incident and Verified Recovery Candidate
+
+GitHub main was pushed as 8f0e81a and release v0.4.1.0 was created. Downloaded its
+182203-byte Local-install ZIP and verified exact bytes, SHA-256
+`5d9b539a3b0db3f57ba68399dc734708db0ee050700e89e837496d3b78c28ecf`.
+The root-level Workshop ZIP is attached separately. Runtime DLL/data remain unchanged.
+
+The unattended SDK publication selected the wrong storage contract. It successfully
+updated original item 3695988693 to a modern depot, but the installed game's actual
+KMod.Steam.MakeMod, freshly decompiled with ILSpy, requires a regular ZIP file from
+GetItemInstallInfo. The modern download returned a directory. Its nine payload files
+matched the release, alongside an old cached legacy.bin; that was insufficient for
+ONI installation. This was an avoidable publisher error, not a product runtime defect.
+
+Retained the original metadata and preview. SetAllowLegacyUpload and deprecated
+RemoteStorage update attempts, including creator-tool context 636750, completed with
+EResultFail (2). Readback retained the modern manifest 8657960590493374668. All attempts
+have receipts; there are no unknown-outcome writes being retried. Do not claim that
+the original listing is repaired or its newest payload can be installed by ONI.
+
+Created exactly one private recovery candidate through the matching legacy
+RemoteStorage.PublishWorkshopFile contract. It returned EResultOK with no agreement
+requirement. Authenticated consumer-context download returned an actual legacy ZIP
+file, 180907 bytes; all nine root-level member hashes match the qualified release.
+Its original cover was retained. The private ID, download path, hashes and API receipts
+are recorded only in ignored artifacts/release-20261026. No replacement was made public.
+
+Posted and verified a bilingual installation warning/GitHub fallback on the original
+listing through a metadata-only update. Its title, cover, comments, ratings and
+subscription identity were preserved. The user was told plainly about the publisher
+mistake and asked whether to publish the verified replacement with migration guidance
+or retain the original ID and request platform recovery. Subscription/rating transfer
+is not promised. Technical support data is prepared; no support message was sent.
+
+Added two lasting packaging-contract checks: direct-root manifests and exact Workshop
+ZIP member bytes. The gate now passes 48 managed checks plus ShellCheck. Removed the
+unsafe SteamCMD VDF into system Trash, and retained experimental native publishers in
+ignored evidence rather than shipping an unsafe automation utility. Current user setup
+retains the qualified local manual candidate and original preferences; the incompatible
+Steam entry remains disabled during recovery. Original save hash remains preserved.
+
+Completion boundary: GitHub is released; original Steam delivery needs recovery or an
+explicit replacement decision. Compatible private recovery content is ready. Shared
+game reservation is released. Further public content writes are held for that decision.

@@ -28,8 +28,12 @@ For details, see [behavior and data](docs/architecture.md) and
 
 ## Release Status
 
-Latest package: **0.4.1.0**. Workshop update is pending; its last verified release is **0.3.1.0**.
-46 managed checks and 26 final native assertions pass, including actual Shift+F7/F8
+Latest GitHub package: **0.4.1.0**.
+Workshop installation is currently affected by an upload-format issue; use the verified
+GitHub ZIP while recovery is completed. A compatible private recovery candidate has
+been verified; restoring the existing listing or publishing its replacement is pending.
+
+48 managed checks and 26 final native assertions pass, including actual Shift+F7/F8
 input, planet buttons, camera restoration, save/reload and permanent rocket-route analysis.
 Testing used the original mod profile, including Bigger Camera Zoom Out, on macOS
 with ONI U59-744825. Native launch prerequisites remain enforced; this fixture's
@@ -37,7 +41,7 @@ rockets were not launch-ready, so a full flight was not exercised.
 See [validation status](docs/progress.md).
 
 Upload the complete `dist/liyux.RevealStarMap` folder. The build also creates a
-versioned ZIP with the same content.
+versioned ZIP with the same content and a separate `-workshop.zip` with files at its root.
 
 [Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=3695988693)
 and [GitHub releases](https://github.com/Liyux3/reveal-starmap/releases).
@@ -53,6 +57,12 @@ An installed .NET SDK can be used directly; bootstrap is needed only when none i
 Set `ONI_MANAGED_PATH` for a nondefault game installation. The build uses the pinned
 PLib in `vendor`, embeds all three languages and creates the upload folder and ZIP together.
 Previous generated folders are moved to the system Trash.
+
+ONI's current Steam installer expects a legacy ZIP file, rather than a modern Workshop
+depot directory. Use the official ONI Mod Uploader for the folder, or an explicitly
+legacy upload of the root-level Workshop ZIP. Validate that Steam's GetItemInstallInfo
+returns a regular ZIP file before accepting a release. The unsafe SteamCMD VDF has
+been retired. Publisher app 636750 and consumer app 457140 are distinct contexts.
 
 The verifier uses the built DLL, actual PLib and ONI managed types. It covers analysis
 preservation, serialization, settings migration, typed option write-back and all

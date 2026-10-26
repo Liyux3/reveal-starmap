@@ -25,12 +25,20 @@ bounds; reliable restoration and migration; clean packaging and verified commits
 Standalone `Oxygen Not Included: Spaced Out` debug mod focused on temporary map
 visibility tools, with an optional global preference for permanent starmap survey.
 
-Workshop's last verified published version is `0.3.1.0`. Qualified package: `0.4.1.0`,
-with 46 managed checks and 26 final native assertions passed. Shift+F7/F8, planet buttons,
+GitHub release `0.4.1.0` is public and its downloaded ZIP matches the qualified artifact.
+The original Workshop entry currently has an incompatible modern-depot upload, with
+a public installation warning and GitHub fallback. Client APIs rejected legacy recovery.
+A separate private legacy recovery candidate is verified; publication/migration needs
+the user's decision. Evidence and its private ID are in `artifacts/release-20261026/`.
+
+Qualified package `0.4.1.0` has 48 managed checks and 26 final native assertions passed.
+Shift+F7/F8, planet buttons,
 camera restoration, native reload and permanent routes passed in the original mod profile.
 Three fueled rockets failed native launch-readiness checks; full flight remains untested.
-GitHub publication is authorized. Steam's native uploader is blocked by a Documents
-permission prompt and the Mac lock; a byte-identical Library upload candidate is ready.
+The official uploader stalled on a Documents permission request; an authenticated SDK
+route avoided granting that permission, but initially selected the wrong storage format.
+Do not publish a modern depot directory for this game. Require GetItemInstallInfo to
+return a regular ZIP, root-level manifests, and matching qualified member hashes.
 Current implementation: [architecture](docs/architecture.md).
 Release evidence and remaining checks: [progress](docs/progress.md).
 

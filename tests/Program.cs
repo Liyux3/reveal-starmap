@@ -48,6 +48,23 @@ using (var archive = ZipFile.OpenRead(Path.Combine(repo, "dist", "RevealStarMap-
         "Package includes dependency license and excludes game assemblies and test drivers");
 }
 
+// ONI's Steam installer requires a ZIP file, with mod.yaml at its root.
+using (var archive = ZipFile.OpenRead(Path.Combine(repo, "dist", "RevealStarMap-" + version + "-workshop.zip")))
+{
+    string package = Path.Combine(repo, "dist", "liyux.RevealStarMap");
+    var entries = archive.Entries.Where(e => !e.FullName.EndsWith('/')).ToArray();
+    Check(archive.GetEntry("mod.yaml") != null && archive.GetEntry("mod_info.yaml") != null &&
+        archive.GetEntry("RevealStarMap.dll") != null,
+        "Workshop payload exposes the files required by ONI at the ZIP root");
+    var expected = Directory.GetFiles(package, "*", SearchOption.AllDirectories)
+        .Select(p => Path.GetRelativePath(package, p).Replace('\\', '/')).OrderBy(p => p);
+    Check(entries.Select(e => e.FullName).OrderBy(p => p).SequenceEqual(expected) && entries.All(e =>
+    {
+        using var stream = e.Open();
+        return SHA256.HashData(stream).SequenceEqual(SHA256.HashData(File.ReadAllBytes(Path.Combine(package, e.FullName))));
+    }), "Legacy Workshop ZIP contains exactly the qualified package bytes");
+}
+
 // Legacy serialized lists store Q then R; AxialI's constructor takes R then Q.
 var stateType = mod.GetType("RevealStarMap.State.RevealSnapshotState", true)!;
 var legacyState = RuntimeHelpers.GetUninitializedObject(stateType);

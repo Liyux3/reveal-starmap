@@ -2,6 +2,10 @@
 
 `./scripts/check.sh` builds, checks shell scripts and runs `Verify.csproj`, including
 legacy coordinate migration, language fallback, typed options and archive identity.
+It also verifies the root-level legacy Workshop ZIP separately from the Local-install
+archive. Check Steam's actual installed artifact is a regular ZIP file, then compare
+every member against the qualified package; a modern directory download does not meet
+ONI's installation contract.
 
 `LiveProbe.cs`, `build-live-probe.sh` and `live-command.sh` are a local ONI test driver,
 excluded from the managed verifier and production build. Their default evidence root is the ignored
