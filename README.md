@@ -28,16 +28,19 @@ For details, see [behavior and data](docs/architecture.md) and
 
 ## Release Status
 
-Local release: **0.4.1.0**. Last verified Workshop release: **0.3.1.0**.
-The local release has not been uploaded to Workshop.
-46 managed checks and targeted native regressions pass, including options save/reopen,
-rapid preview transitions, camera restoration and zoom limits with Bigger Camera Zoom Out.
-Earlier integration covered native rocket routes and save/reload. System keyboard
-coverage is partial, and a complete launch-and-arrival flight has not been exercised.
+Latest package: **0.4.1.0**. Workshop update is pending; its last verified release is **0.3.1.0**.
+46 managed checks and 26 final native assertions pass, including actual Shift+F7/F8
+input, planet buttons, camera restoration, save/reload and permanent rocket-route analysis.
+Testing used the original mod profile, including Bigger Camera Zoom Out, on macOS
+with ONI U59-744825. Native launch prerequisites remain enforced; this fixture's
+rockets were not launch-ready, so a full flight was not exercised.
 See [validation status](docs/progress.md).
 
 Upload the complete `dist/liyux.RevealStarMap` folder. The build also creates a
 versioned ZIP with the same content.
+
+[Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=3695988693)
+and [GitHub releases](https://github.com/Liyux3/reveal-starmap/releases).
 
 ## Development
 

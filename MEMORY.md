@@ -6,6 +6,10 @@ User request, 2026-10-26, verbatim:
 
 > 本地最新的是什么，你再都从头到尾都看好，正式做到最优雅漂亮的状态并提交。
 
+Publication request, 2026-10-26, verbatim:
+
+> 全都弄好，然后直接上线提交就好了。
+
 Earlier user wording retained for this review:
 
 > 不需要每个存档都要弄啊，就只需要你的像这种配置的话，其实只需要在模的那个对应的 config 菜单里面
@@ -21,10 +25,12 @@ bounds; reliable restoration and migration; clean packaging and verified commits
 Standalone `Oxygen Not Included: Spaced Out` debug mod focused on temporary map
 visibility tools, with an optional global preference for permanent starmap survey.
 
-Last verified published version: `0.3.1.0`. Local candidate: `0.4.1.0`, with 46 managed
-checks and 17 targeted native assertions passed. System Shift+F1 starts preview;
-the remaining keyboard/reload acceptance was interrupted by a concurrent native task.
-0.4.0.0 previously passed route and save/reload integration; full flight remains untested.
+Workshop's last verified published version is `0.3.1.0`. Qualified package: `0.4.1.0`,
+with 46 managed checks and 26 final native assertions passed. Shift+F7/F8, planet buttons,
+camera restoration, native reload and permanent routes passed in the original mod profile.
+Three fueled rockets failed native launch-readiness checks; full flight remains untested.
+GitHub publication is authorized. Steam's native uploader is blocked by a Documents
+permission prompt and the Mac lock; a byte-identical Library upload candidate is ready.
 Current implementation: [architecture](docs/architecture.md).
 Release evidence and remaining checks: [progress](docs/progress.md).
 

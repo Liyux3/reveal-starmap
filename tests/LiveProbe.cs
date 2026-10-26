@@ -129,6 +129,33 @@ public sealed class Driver : MonoBehaviour
             case "save":
                 return SaveLoader.Instance.Save(TestSave((string)c["name"]), false, false);
             case "snapshot": return Snapshot();
+            case "pause":
+                SpeedControlScreen.Instance.Pause(false);
+                return Snapshot();
+            case "flight":
+                var flying = Components.Clustercrafts.Single(r => r.GetInstanceID() == (int)c["rocket"]);
+                var flightSelector = flying.GetComponent<RocketClusterDestinationSelector>();
+                var destination = new AxialI((int)c["r"], (int)c["q"]);
+                string failure;
+                var flightPath = ClusterGrid.Instance.GetPath(flying.Location, destination, flightSelector, out failure);
+                // Native GetPath omits the starting cell; Count is the travel distance.
+                if (flightPath == null || flightPath.Count == 0 || flightPath.Count > flying.GetRangeInTiles())
+                    throw new InvalidOperationException("Native rocket route/fuel check failed: " + failure);
+                var previous = flying.Destination;
+                flightSelector.SetDestination(destination);
+                if (flying.Status == Clustercraft.CraftStatus.Grounded)
+                {
+                    if (!flying.CheckReadyToLaunch())
+                    {
+                        flightSelector.SetDestination(previous);
+                        throw new InvalidOperationException("Native launch readiness check failed");
+                    }
+                    flying.RequestLaunch();
+                }
+                SpeedControlScreen.Instance.SetSpeed(2);
+                SpeedControlScreen.Instance.Unpause(false);
+                return new { rocket = flying.Name, r = flying.Location.r, q = flying.Location.q,
+                    targetR = destination.r, targetQ = destination.q, steps = flightPath.Count };
             case "route":
                 var craft = Components.Clustercrafts.FirstOrDefault();
                 var fixture = craft == null ? new GameObject("TestRouteSelector") : null;
@@ -181,6 +208,9 @@ public sealed class Driver : MonoBehaviour
         return new
         {
             save = SaveLoader.GetActiveSaveFilePath(),
+            version = typeof(RevealStarMapSettings).Assembly.GetName().Version.ToString(),
+            mapOpen = ClusterMapScreen.Instance != null && ClusterMapScreen.Instance.IsScreenActive(),
+            gridWidth = Grid.WidthInCells, gridHeight = Grid.HeightInCells,
             mode = AccessTools.Property(modeType, "ActiveMode").GetValue(null, null).ToString(),
             analyzed = all.Count(c => ClusterGrid.Instance.IsCellVisible(c)), cells = all.Count,
             fog = string.Join(";", points.OrderBy(p => p.Key.r).ThenBy(p => p.Key.q).Select(p => p.Key.r + "," + p.Key.q + ":" + p.Value)),
@@ -194,7 +224,10 @@ public sealed class Driver : MonoBehaviour
             worlds = ClusterManager.Instance.WorldContainers.Select(w => new { w.id, w.worldName, w.IsDiscovered, w.IsDupeVisited,
                 w.IsRoverVisted, offset = w.WorldOffset.ToString(), size = w.WorldSize.ToString() }).ToArray(),
             activeWorld = ClusterManager.Instance.activeWorldId,
-            rockets = Components.Clustercrafts.Select(r => new { r.Name, location = r.Location.ToString(), id = r.GetInstanceID() }).ToArray()
+            rockets = Components.Clustercrafts.Select(r => new { r.Name, r = r.Location.r, q = r.Location.q,
+                targetR = r.Destination.r, targetQ = r.Destination.q, status = r.Status.ToString(),
+                traveling = r.IsFlightInProgress(), range = r.GetRangeInTiles(), speed = r.Speed,
+                id = r.GetInstanceID() }).ToArray()
         };
     }
 

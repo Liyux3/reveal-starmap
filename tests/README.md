@@ -27,4 +27,8 @@ The driver sets runInBackground only in the test process. Quit normally, remove 
 mods from Local, restore the backed-up config and enabled mod set while retaining Steam's
 own downloads, and verify original campaign hashes. The resume-pointer command requires the existing original save path captured before testing.
 `batch` runs ordered commands in one frame to exercise rapid preview transitions.
-Snapshots report fade state, input readiness and actual/target camera zoom.
+Snapshots report fade state, input readiness, actual/target camera zoom and rocket state.
+`flight` accepts a live rocket instance ID and target axial coordinates, requires a native
+route within its remaining range, and checks native launch readiness before starting.
+Native paths omit their starting cell; path Count is the travel distance. No fuel, crew,
+readiness or debug bypass is supplied. `pause` stops an active test run for inspection.

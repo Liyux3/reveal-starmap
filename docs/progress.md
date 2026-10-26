@@ -216,3 +216,52 @@ match the folder byte-for-byte. DLL SHA-256:
 `62d36905a9abe88d92cbfd1cee6aee93c3316db8821a77a78d12f5eebbb596d7`.
 Workshop upload metadata now targets this package. No upload or public release was
 performed during this review; last verified Workshop version remains 0.3.1.0.
+
+## 2026-10-26: Publication Acceptance
+
+The user explicitly requested completion and direct publication. The other ONI task is
+idle/interrupted. Its abandoned main-menu process blocked in Unity semaphores and did
+not answer native UI requests; retained a process sample and configuration backups,
+then terminated only that stale test process. Subsequent candidate sessions quit normally
+through App.Quit. Original Chaotic Eras sources and its staged test saves were preserved.
+
+Final acceptance used the original enabled mod profile with Mod Updater temporarily off,
+the exact 0.4.1 DLL and a separate nonshipping driver. All 46 managed checks and ShellCheck
+passed again at this final release milestone. The 26 native assertions, package hashes
+and original-source preservation are in ignored `artifacts/release-20261026/acceptance.json`.
+
+Passed actual system Shift+F7 on/off from the starmap and Shift+F8 on/off, including the
+original rocket-interior world/position/zoom restore. The selected-planet native button
+changed from Preview map to End preview and restored the previous view. Exploration,
+terrain visibility/spawnable bytes, visits and debug/sandbox flags stayed unchanged.
+A save written during Canvas preview loaded with mode=None and a bounded original view.
+
+Saving PermanentSurvey in the real PLib dialog alone retained 79/547 analyzed cells.
+The explicit action raised that to 547/547. The same actual rocket selector that rejected
+target (-13,0) for missing analysis then returned a valid 16-cell native path. A complete
+game restart and native reload retained the analysis and valid route, with debug and
+sandbox false. Three fueled candidate rockets failed the game's native launch-readiness
+gate; no prerequisites were bypassed and no complete physical trip is claimed.
+An early test-only one-cell route guard used the wrong path-count convention; native
+source establishes that GetPath omits the start. Corrected the nonshipping driver and
+compiled it before the cold-start pass. Production navigation code was unchanged.
+
+Restored the user's exact Reveal settings, original other-mod selections and original
+resume pointer; retired the test driver and verified the original campaign's SHA-256.
+The separate manual candidate remains available until the published subscription is
+verified and activated. Current package contains nine files, including three catalogs
+and the PLib license; its DLL still hashes to
+`62d36905a9abe88d92cbfd1cee6aee93c3316db8821a77a78d12f5eebbb596d7`.
+
+Fetched GitHub before pushing: remote 66cd9da removed personal README paths and preview
+attribution. Merged that cleanup without dropping the new behavior/development docs.
+Prepared bilingual Workshop copy, preserved the existing public title/cover/gallery,
+and adjusted only relevant UI/content and DLC tags.
+
+The official uploader's first Publish action blocked inside opendir before any public
+change appeared. A fallback system capture showed its Documents-folder permission
+prompt; Computer Use then reported the Mac locked. Requested a manual unlock once.
+No second submission was made. Staged the exact nine-file package outside Documents at
+`~/Library/Application Support/RevealStarMapWorkshopUpload/candidates/0.4.1.0`, verified
+every file hash and retained the receipt. Resume by dismissing the broad Documents
+request, reconcile the failed/pending upload, select this staging directory and submit.
