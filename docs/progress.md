@@ -335,3 +335,27 @@ Prepared `support-request.md` and a sanitized `workshop-recovery-support.zip`, c
 the exact qualified Workshop package and focused error/identity evidence. Asked for
 explicit authorization before sending the external Klei support request. Publication
 is still incomplete for the original Steam item; GitHub 0.4.1 remains available.
+
+## 2026-10-26: Official Uploader Recovery Replay
+
+The user redirected recovery to the original upload flow. Launched the installed
+official ONI Mod Uploader, selected the existing listing and enabled Update Data only.
+The staged directory outside Documents contained exactly the nine qualified 0.4.1
+files, with matching hashes; preview and details updates were disabled.
+
+The native tool generated its ZIP, wrote mod_publish_data_file.zip and completed
+FileShare with EResultOK (1). FinalizeUpdate then returned EResultFail (2) for original
+ID 3695988693, and the native dialog displayed Error committing update. A Computer Use
+capture error after clicking Publish did not mean the action failed to execute; the
+native log, subsequent alert and server readback established its completed outcome.
+
+Public readback retained manifest 8657960590493374668 and an empty legacy filename.
+Saved official-uploader-stage.json, official-uploader-attempt.json,
+official-uploader-log.txt and official-uploader-readback.json in the release evidence
+directory. The listing remains public. No new item or support request was created.
+
+Dismissed the error and quit only the uploader launched for this attempt. The running
+game and user mod profile were left intact. An optional static uploader trace did not
+complete; cancelled it and closed the analysis target, with no conclusion drawn from
+that trace. Source/runtime packages remain unchanged. The official upload replay is
+now directly verified to fail at commit; original-ID recovery remains unresolved.

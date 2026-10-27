@@ -35,15 +35,19 @@ a public installation warning and GitHub fallback. Client APIs rejected legacy r
 The user chose to retain the original ID and remove the duplicate. The private recovery
 item was deleted successfully and owner-authenticated readback returns FileNotFound.
 Its local cache and creation helpers were retired to system Trash. The original remains
-public. A sanitized recovery request and attachment are prepared; contacting Klei support
-awaits explicit outbound authorization. Evidence is in `artifacts/release-20261026/`.
+public. A sanitized support draft remains unsent; the user directed recovery back to
+the official uploader. That tool successfully wrote and shared the qualified ZIP,
+then failed committing the original ID with EResultFail (2). Readback retained the
+modern manifest. Evidence is in `artifacts/release-20261026/`.
 
 Qualified package `0.4.1.0` has 48 managed checks and 26 final native assertions passed.
 Shift+F7/F8, planet buttons,
 camera restoration, native reload and permanent routes passed in the original mod profile.
 Three fueled rockets failed native launch-readiness checks; full flight remains untested.
-The official uploader stalled on a Documents permission request; an authenticated SDK
-route avoided granting that permission, but initially selected the wrong storage format.
+The first official-uploader attempt stalled on a Documents permission request. The
+SDK fallback initially selected the wrong storage format. A subsequent official retry
+used the verified staging folder outside Documents and reached the server commit,
+which failed. No expanded Documents permission was granted.
 Do not publish a modern depot directory for this game. Require GetItemInstallInfo to
 return a regular ZIP, root-level manifests, and matching qualified member hashes.
 Current implementation: [architecture](docs/architecture.md).
