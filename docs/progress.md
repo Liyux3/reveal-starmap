@@ -310,3 +310,28 @@ Steam entry remains disabled during recovery. Original save hash remains preserv
 Completion boundary: GitHub is released; original Steam delivery needs recovery or an
 explicit replacement decision. Compatible private recovery content is ready. Shared
 game reservation is released. Further public content writes are held for that decision.
+
+## 2026-10-26: Preserve Original Workshop Identity
+
+The user explicitly rejected a replacement listing and requested deletion of the new
+duplicate. Authenticated owner/app checks confirmed the exact private candidate before
+ISteamUGC.DeleteItem. Steam returned EResultOK for that ID; owner-authenticated details
+then returned FileNotFound (9). Public API readback also returned FileNotFound, while
+original item 3695988693 remained public with its title and existing subscription,
+comment and rating identity. The deletion receipt is `duplicate-deletion.json` in the
+release evidence folder.
+
+Retired the duplicate's local Steam download, private creation/readback executables
+and private staging ZIP to system Trash, with a move manifest. Kept qualified release
+artifacts and original-item evidence. No further item was created. Runtime code,
+qualified package hashes, user configuration and game saves remain unchanged.
+
+Reviewed actual Steam upload logs: the single legacy ZIP uploads succeeded, followed
+by failure when committing the original item. The official uploader binary uses
+STEAMREMOTESTORAGE_INTERFACE_VERSION014 and legacy update callbacks. Client-side
+storage recovery remains unverified; no unsupported workaround is being published.
+
+Prepared `support-request.md` and a sanitized `workshop-recovery-support.zip`, containing
+the exact qualified Workshop package and focused error/identity evidence. Asked for
+explicit authorization before sending the external Klei support request. Publication
+is still incomplete for the original Steam item; GitHub 0.4.1 remains available.

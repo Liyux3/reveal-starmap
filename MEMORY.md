@@ -10,6 +10,10 @@ Publication request, 2026-10-26, verbatim:
 
 > 全都弄好，然后直接上线提交就好了。
 
+Publication identity decision, 2026-10-26, verbatim:
+
+> 对。保留旧的，新的我不要重复，去掉。你把他优雅的弄好。
+
 Earlier user wording retained for this review:
 
 > 不需要每个存档都要弄啊，就只需要你的像这种配置的话，其实只需要在模的那个对应的 config 菜单里面
@@ -28,8 +32,11 @@ visibility tools, with an optional global preference for permanent starmap surve
 GitHub release `0.4.1.0` is public and its downloaded ZIP matches the qualified artifact.
 The original Workshop entry currently has an incompatible modern-depot upload, with
 a public installation warning and GitHub fallback. Client APIs rejected legacy recovery.
-A separate private legacy recovery candidate is verified; publication/migration needs
-the user's decision. Evidence and its private ID are in `artifacts/release-20261026/`.
+The user chose to retain the original ID and remove the duplicate. The private recovery
+item was deleted successfully and owner-authenticated readback returns FileNotFound.
+Its local cache and creation helpers were retired to system Trash. The original remains
+public. A sanitized recovery request and attachment are prepared; contacting Klei support
+awaits explicit outbound authorization. Evidence is in `artifacts/release-20261026/`.
 
 Qualified package `0.4.1.0` has 48 managed checks and 26 final native assertions passed.
 Shift+F7/F8, planet buttons,
