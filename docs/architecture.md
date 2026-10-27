@@ -80,4 +80,5 @@ The sole Workshop target is `3695988693`. After conversion to modern storage,
 legacy uploads completed with EResultFail (2) and retained the depot manifest.
 The owner selected preservation of this identity; a private recovery duplicate was
 deleted. Until an actual subscribed legacy ZIP is verified for the original item,
-GitHub remains the qualified installation path. Retain the installation notice.
+GitHub remains the qualified installation path. Preserve the restored user-authored
+Workshop description when updating content.

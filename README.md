@@ -63,7 +63,7 @@ returns a regular ZIP file before accepting a release. The unsafe SteamCMD VDF h
 been retired. Publisher app 636750 and consumer app 457140 are distinct contexts.
 The existing Workshop item `3695988693` is the sole publication target. Its conversion
 to modern storage has not been reversed by the available client APIs; retain the
-listing and its installation notice until platform recovery is verified.
+listing while platform recovery remains unverified. Preserve its user-authored description.
 
 The verifier uses the built DLL, actual PLib and ONI managed types. It covers analysis
 preservation, serialization, settings migration, typed option write-back and all

@@ -359,3 +359,14 @@ game and user mod profile were left intact. An optional static uploader trace di
 complete; cancelled it and closed the analysis target, with no conclusion drawn from
 that trace. Source/runtime packages remain unchanged. The official upload replay is
 now directly verified to fail at commit; original-ID recovery remains unresolved.
+
+## 2026-10-27: Restore Original Workshop Description
+
+At the user's request, restored the complete original description from the pre-update
+Workshop snapshot, retaining its exact wording and line endings. A description-only
+update returned EResultOK; public API readback matches the original text exactly.
+The title, cover URL, content manifest, filename, visibility and tags match the
+immediately preceding snapshot. No content update or release-note text was submitted.
+Synced workshop_description.txt and the existing release description staging copy.
+The installation-format issue remains unresolved; the public description is now the
+user's original copy. Receipts are in description-restoration-*.json under release evidence.

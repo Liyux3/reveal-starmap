@@ -30,8 +30,10 @@ Standalone `Oxygen Not Included: Spaced Out` debug mod focused on temporary map
 visibility tools, with an optional global preference for permanent starmap survey.
 
 GitHub release `0.4.1.0` is public and its downloaded ZIP matches the qualified artifact.
-The original Workshop entry currently has an incompatible modern-depot upload, with
-a public installation warning and GitHub fallback. Client APIs rejected legacy recovery.
+The original Workshop entry currently has an incompatible modern-depot upload.
+Its user-authored description was restored verbatim on 2026-10-27 at the user's request;
+preserve this copy when updating binaries. GitHub hosts the verified manual package.
+Client APIs rejected legacy recovery.
 The user chose to retain the original ID and remove the duplicate. The private recovery
 item was deleted successfully and owner-authenticated readback returns FileNotFound.
 Its local cache and creation helpers were retired to system Trash. The original remains
