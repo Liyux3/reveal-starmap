@@ -14,6 +14,20 @@ Publication identity decision, 2026-10-26, verbatim:
 
 > 对。保留旧的，新的我不要重复，去掉。你把他优雅的弄好。
 
+Recovery and acceptance request, 2026-10-30, verbatim:
+
+> 什么情况呀？把都修好呀，然后把都端到端跑通。
+
+> 用它的官方那个不是有个官方的工具吗？就是这样的工具。
+
+Save protection, 2026-10-30, verbatim:
+
+> 反正你不要影响我原来的游玩就行。
+
+Native acceptance uses additional copies under the project's ignored test directory.
+Never load or save over personal campaign paths. Restore temporary mod preferences and
+the original Continue pointer after the test session.
+
 Earlier user wording retained for this review:
 
 > 不需要每个存档都要弄啊，就只需要你的像这种配置的话，其实只需要在模的那个对应的 config 菜单里面
@@ -41,17 +55,32 @@ public. A sanitized support draft remains unsent; the user directed recovery bac
 the official uploader. That tool successfully wrote and shared the qualified ZIP,
 then failed committing the original ID with EResultFail (2). Readback retained the
 modern manifest. Evidence is in `artifacts/release-20261026/`.
+On 2026-10-30, the requested official-tool replay failed during FileShare with
+FileNotFound (9). A freshly named qualified ZIP then shared successfully through the
+same Steam Cloud contract, but its content-only update to the original item still
+returned EResultFail (2). The original public metadata/content remain unchanged.
+Steam's changelog exposes a native RevertWorkshopFile action; recovery through that
+path is unverified and awaits the owner's browser login, currently at email verification.
+Further receipts are in `artifacts/recovery-20261030/`.
 
 Qualified package `0.4.1.0` has 48 managed checks and 26 final native assertions passed.
 Shift+F7/F8, planet buttons,
 camera restoration, native reload and permanent routes passed in the original mod profile.
-Three fueled rockets failed native launch-readiness checks; full flight remains untested.
+Additional 2026-10-30 native acceptance retained research earned during preview,
+ended World preview on reload, and completed a real one-hex flight after native boarding.
+The rocket reached (0,4) from (0,3), ended InFlight and stationary, and consumed one
+tile of range (6 -> 5). Earlier launch attempts had incorrectly checked full boarding
+readiness before requesting boarding, and later waits exposed native modal/pause holds.
+The successful run used the unchanged production DLL and an isolated test driver.
 The first official-uploader attempt stalled on a Documents permission request. The
 SDK fallback initially selected the wrong storage format. A subsequent official retry
 used the verified staging folder outside Documents and reached the server commit,
 which failed. No expanded Documents permission was granted.
 Do not publish a modern depot directory for this game. Require GetItemInstallInfo to
 return a regular ZIP, root-level manifests, and matching qualified member hashes.
+The additional native test process has exited, temporary drivers are in system Trash,
+original mod selections/config/preferences are restored, and the shared profile lock
+is released. Browser authentication for original-item recovery remains pending.
 Current implementation: [architecture](docs/architecture.md).
 Release evidence and remaining checks: [progress](docs/progress.md).
 

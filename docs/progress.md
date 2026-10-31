@@ -370,3 +370,80 @@ immediately preceding snapshot. No content update or release-note text was submi
 Synced workshop_description.txt and the existing release description staging copy.
 The installation-format issue remains unresolved; the public description is now the
 user's original copy. Receipts are in description-restoration-*.json under release evidence.
+
+## 2026-10-30: Official Delivery Diagnosis
+
+The user requested a complete original-item repair and end-to-end acceptance, then
+explicitly redirected attention to the official ONI Mod Uploader. Reopened that tool,
+selected original item 3695988693 and enabled Update Data only. The staging directory
+has exactly the nine files from the qualified 0.4.1 acceptance manifest. FileWrite
+succeeded, but FileShare returned FileNotFound (9) before commit. Closed only this
+uploader session. Public readback confirms title, description, preview, content handle,
+filename, tags, visibility and update timestamp are unchanged.
+
+A uniquely named, hash-qualified Workshop ZIP shared successfully under creator app
+636750 with the verified owner. A content-only legacy commit using that persisted file
+returned EResultFail (2), separating the transient staging failure from the unresolved
+original-item commit failure. No replacement item or support communication was created.
+
+Steam's official changelog page includes RevertWorkshopFile and its
+ajaxreverttochangelogentry action. The last good legacy timestamp is 1785435334;
+the saved original content handle is 14374718941853451483. A version rollback is a
+candidate format-recovery step before uploading 0.4.1, not an accepted repair result.
+The owner browser session is awaiting email verification. Native Steam SDK owner
+authentication works independently. Preserve the pending browser rather than restarting
+authentication or extracting account credentials.
+
+Independent verification downloaded both GitHub 0.4.1 archives and matched their nine
+payload files to the qualified manifest. A single check gate in a temporary copy passed
+48 managed checks and ShellCheck; the rebuilt payload is identical. Stored native
+receipts still support 26 final assertions. Successful rocket flight/arrival, research
+earned during a preview, World-preview reload and a surveyed save loaded without this
+mod need additional native coverage. Another active ONI project owns the native test
+profile through mods/.native-validation.lock; its process and configuration were preserved.
+
+Evidence: artifacts/recovery-20261030, including official-attempt.json,
+official-log.txt, fresh-cloud-stage.json, legacy-content-update.json, check.log and
+evidence-audit.json. Original Workshop delivery remains incomplete.
+
+Additional native acceptance used an extra campaign copy under that evidence root.
+The user's personal save path was never loaded or overwritten; its recorded SHA-256
+still matches. After the other coordinator released the native profile, this task
+acquired the same filesystem lock and captured its own settings backups.
+
+Passed a native partial-research increment during temporary preview (0 -> 10 points),
+then retained the complete resulting dictionary when preview ended. World preview of
+undiscovered world 3 ended on native save/reload with unchanged terrain bytes, research,
+visits and debug/sandbox flags. The real PLib Permanent Survey option saved successfully;
+the explicit action analyzed 547/547 cells and the real rocket selector returned the
+16-step route to (-13,0). A cold game restart retained 547/547 analysis.
+
+Extended the nonshipping driver with guarded research, real rocket readiness diagnostics,
+native preparation/boarding launch flow and travel snapshots. Save writes, including
+autosaves, are redirected into the evidence root and Steam account-stat writes are
+blocked in the guarded test process. The transport now allows a 120-second native-load
+response window and treats partially constructed game state as loading.
+
+The first observed launch request was held behind native mod-difference/download
+confirmation dialogs: simulation time stayed constant. Retained that attempt separately,
+dismissed the actual native dialogs, and restarted the flight observation. Its current
+state is recorded in current-run.json; launch acceptance alone is not arrival evidence.
+The owner login page is now a retained Edge handoff tab, replacing a reader-owned tab
+that closed across a user turn. Do not discard the remaining authentication session.
+
+Final native flight acceptance passed after removing the remaining pause hold through
+the ordinary pause key. Rocket 02 boarded and launched from (0,3), reached (0,4),
+finished in the native InFlight state with travel stopped, and used one tile of range
+(6 -> 5). Simulation advanced 47.725 seconds; all 547 cells remained analyzed and
+debug/sandbox stayed false. A one-tile launch advances its first grid node during
+Launching, so that intermediate state was explicitly rejected as arrival evidence.
+The final verdict requires the completed InFlight/Grounded state.
+
+Quit the owned game, restored original enabled-mod selections and byte-identical
+Reveal settings/player preferences, retired both temporary driver identities to system
+Trash, and released the shared native lock. The personal source campaign still hashes
+to 07d3f1e92f1c5381b123bd103c83def4f3c911b85d770afbe9baa2bb29d116ef.
+Receipts: research-verdict.json, world-reload-verdict.json, native-survey.json,
+guarded-baseline.json, flight-verdict.json and restoration.json. The final Workshop
+subscriber-install gate remains failed/pending recovery; no success reply or description
+change has been published for the unresolved distribution state.

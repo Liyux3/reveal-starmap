@@ -22,6 +22,36 @@ public sealed class ProbeMod : KMod.UserMod2
         Debug.Log("[Reveal Live Test] Driver patches registered.");
     }
 
+    [HarmonyPatch(typeof(SaveLoader), nameof(SaveLoader.Save), new[] { typeof(string), typeof(bool), typeof(bool) })]
+    public static class IsolateSaveWrites
+    {
+        public static void Prefix([HarmonyArgument(0)] ref string filename)
+        {
+            string root = Path.GetFullPath(Driver.Root).TrimEnd(Path.DirectorySeparatorChar)
+                + Path.DirectorySeparatorChar;
+            if (Path.GetFullPath(filename).StartsWith(root, StringComparison.Ordinal)) return;
+            // Includes native autosaves while a copied campaign's simulation advances.
+            string folder = Path.Combine(Driver.Root, "auto_save");
+            Directory.CreateDirectory(folder);
+            filename = Path.Combine(folder, Path.GetFileName(filename));
+            Debug.Log("[Reveal Live Test] Redirected a save to " + filename);
+        }
+    }
+
+    [HarmonyPatch(typeof(Steamworks.SteamUserStats))]
+    public static class IsolateAccountStats
+    {
+        public static IEnumerable<MethodBase> TargetMethods() => typeof(Steamworks.SteamUserStats)
+            .GetMethods(BindingFlags.Public | BindingFlags.Static).Where(method => method.ReturnType == typeof(bool)
+                && new[] { "SetAchievement", "ClearAchievement", "SetStat", "StoreStats", "ResetAllStats" }.Contains(method.Name));
+
+        public static bool Prefix(ref bool __result)
+        {
+            __result = false;
+            return false;
+        }
+    }
+
     [HarmonyPatch(typeof(MainMenu), "OnSpawn")]
     public static class MainMenuProbe
     {
@@ -95,6 +125,91 @@ public sealed class Driver : MonoBehaviour
         return Path.Combine(Root, name);
     }
 
+    private static void RequireLoadedGame()
+    {
+        if (Game.Instance == null || SaveGame.Instance == null || Game.Instance.IsLoading() || ClusterGrid.Instance == null)
+            throw new InvalidOperationException("A fully loaded game is required");
+    }
+
+    private static string RequireTestSave()
+    {
+        RequireLoadedGame();
+        string active = SaveLoader.GetActiveSaveFilePath();
+        if (string.IsNullOrEmpty(active)) throw new InvalidOperationException("Active test save required");
+        string save = Path.GetFullPath(active);
+        string root = Path.GetFullPath(Root).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+            + Path.DirectorySeparatorChar;
+        if (!save.StartsWith(root, StringComparison.Ordinal) || !File.Exists(save))
+            throw new InvalidOperationException("Active save must exist within Driver.Root");
+        // Reject links below the trusted root, including a linked save file.
+        for (string entry = save; entry.Length >= root.Length; entry = Path.GetDirectoryName(entry))
+            if ((File.GetAttributes(entry) & FileAttributes.ReparsePoint) != 0)
+                throw new InvalidOperationException("Active test save path contains a symbolic link");
+        return save;
+    }
+
+    private static Dictionary<AxialI, float> RevealPoints(ClusterFogOfWarManager.Instance fog) =>
+        (Dictionary<AxialI, float>)AccessTools.Field(fog.GetType(), "m_revealPointsByCell").GetValue(fog);
+
+    private static object Research(JObject c)
+    {
+        string save = RequireTestSave();
+        if (c["points"] == null || (c["points"].Type != JTokenType.Integer && c["points"].Type != JTokenType.Float))
+            throw new ArgumentException("Finite positive numeric points required");
+        float amount = (float)c["points"];
+        if (float.IsNaN(amount) || float.IsInfinity(amount) || amount <= 0f)
+            throw new ArgumentException("Finite positive points required");
+        if (c["r"]?.Type != JTokenType.Integer || c["q"]?.Type != JTokenType.Integer)
+            throw new ArgumentException("Integer target r and q required");
+        var target = new AxialI((int)c["r"], (int)c["q"]);
+        if (!ClusterGrid.Instance.IsValidCell(target)) throw new ArgumentException("Invalid research target");
+        var fog = SaveGame.Instance.GetSMI<ClusterFogOfWarManager.Instance>();
+        if (fog == null) throw new InvalidOperationException("Native fog manager unavailable");
+        var points = RevealPoints(fog);
+        float before, after;
+        bool beforeHadEntry = points.TryGetValue(target, out before);
+        bool revealCompleted = fog.EarnRevealPointsForLocation(target, amount);
+        bool afterHadEntry = points.TryGetValue(target, out after);
+        return new { save, r = target.r, q = target.q, requestedPoints = amount,
+            beforeHadEntry, beforePoints = before, afterHadEntry, afterPoints = after, revealCompleted };
+    }
+
+    private static object RocketReadiness(Clustercraft rocket)
+    {
+        var conditions = new List<object>();
+        bool? prepped = null, ready = null;
+        string gap = null, reading = "CraftModuleInterface";
+        try
+        {
+            var modules = rocket.ModuleInterface;
+            if (modules == null) throw new InvalidOperationException("Native module interface unavailable");
+            // Matches CraftModuleInterface.CheckReadyToLaunch, including launchpad conditions.
+            foreach (var group in new[] { ProcessCondition.ProcessConditionType.RocketPrep,
+                ProcessCondition.ProcessConditionType.RocketStorage, ProcessCondition.ProcessConditionType.RocketFlight,
+                ProcessCondition.ProcessConditionType.RocketBoard })
+            {
+                reading = group.ToString();
+                var native = new List<ProcessCondition>();
+                modules.PopulateConditionSet(group, native);
+                foreach (var condition in native)
+                {
+                    reading = group + "/" + condition.GetType().FullName;
+                    var status = condition.EvaluateCondition();
+                    conditions.Add(new { group = group.ToString(), type = condition.GetType().FullName,
+                        status = status.ToString(), message = condition.GetStatusMessage(status),
+                        tooltip = condition.GetStatusTooltip(status), shownInUI = condition.ShowInUI() });
+                }
+            }
+            reading = "CheckPreppedForLaunch/CheckReadyToLaunch";
+            prepped = rocket.CheckPreppedForLaunch();
+            ready = rocket.CheckReadyToLaunch();
+        }
+        catch (Exception e) { gap = reading + ": " + e.GetType().Name + ": " + e.Message; }
+        return new { id = rocket.GetInstanceID(), rocket.Name, status = rocket.Status.ToString(),
+            available = gap == null, preppedForLaunch = prepped, readyToLaunch = ready,
+            launchRequested = rocket.LaunchRequested, instantBuild = DebugHandler.InstantBuildMode, conditions, gap };
+    }
+
     private static object Run(JObject c)
     {
         switch ((string)c["action"])
@@ -129,13 +244,24 @@ public sealed class Driver : MonoBehaviour
             case "save":
                 return SaveLoader.Instance.Save(TestSave((string)c["name"]), false, false);
             case "snapshot": return Snapshot();
+            case "research": return Research(c);
+            case "readiness":
+                RequireLoadedGame();
+                return c["rocket"] == null ? (object)Components.Clustercrafts.Select(RocketReadiness).ToArray() :
+                    RocketReadiness(Components.Clustercrafts.Single(r => r.GetInstanceID() == (int)c["rocket"]));
             case "pause":
                 SpeedControlScreen.Instance.Pause(false);
                 return Snapshot();
             case "flight":
+                RequireTestSave();
+                if (DebugHandler.InstantBuildMode) throw new InvalidOperationException("Disable native instant-build mode before flight");
                 var flying = Components.Clustercrafts.Single(r => r.GetInstanceID() == (int)c["rocket"]);
                 var flightSelector = flying.GetComponent<RocketClusterDestinationSelector>();
                 var destination = new AxialI((int)c["r"], (int)c["q"]);
+                if (flightSelector == null || !ClusterGrid.Instance.IsValidCell(destination))
+                    throw new ArgumentException("Native rocket selector and valid destination required");
+                if (flying.Status != Clustercraft.CraftStatus.Grounded && flying.Status != Clustercraft.CraftStatus.InFlight)
+                    throw new InvalidOperationException("Rocket must be grounded or in flight");
                 string failure;
                 var flightPath = ClusterGrid.Instance.GetPath(flying.Location, destination, flightSelector, out failure);
                 // Native GetPath omits the starting cell; Count is the travel distance.
@@ -145,17 +271,26 @@ public sealed class Driver : MonoBehaviour
                 flightSelector.SetDestination(destination);
                 if (flying.Status == Clustercraft.CraftStatus.Grounded)
                 {
-                    if (!flying.CheckReadyToLaunch())
+                    // RequestLaunch starts normal boarding; Launch later checks RocketBoard too.
+                    if (!flying.CheckPreppedForLaunch())
                     {
+                        string diagnostic = JsonConvert.SerializeObject(RocketReadiness(flying));
                         flightSelector.SetDestination(previous);
-                        throw new InvalidOperationException("Native launch readiness check failed");
+                        throw new InvalidOperationException("Native launch preparation check failed: " + diagnostic);
                     }
                     flying.RequestLaunch();
+                    if (flying.Status == Clustercraft.CraftStatus.Grounded && !flying.LaunchRequested)
+                    {
+                        string diagnostic = JsonConvert.SerializeObject(RocketReadiness(flying));
+                        flightSelector.SetDestination(previous);
+                        throw new InvalidOperationException("Native launch request declined: " + diagnostic);
+                    }
                 }
                 SpeedControlScreen.Instance.SetSpeed(2);
                 SpeedControlScreen.Instance.Unpause(false);
-                return new { rocket = flying.Name, r = flying.Location.r, q = flying.Location.q,
-                    targetR = destination.r, targetQ = destination.q, steps = flightPath.Count };
+                return new { id = flying.GetInstanceID(), rocket = flying.Name, r = flying.Location.r, q = flying.Location.q,
+                    targetR = destination.r, targetQ = destination.q, steps = flightPath.Count,
+                    status = flying.Status.ToString(), launchRequested = flying.LaunchRequested };
             case "route":
                 var craft = Components.Clustercrafts.FirstOrDefault();
                 var fixture = craft == null ? new GameObject("TestRouteSelector") : null;
@@ -201,19 +336,24 @@ public sealed class Driver : MonoBehaviour
     {
         if (Game.Instance == null || SaveGame.Instance == null || Game.Instance.IsLoading()) return new { loading = true };
         var fog = SaveGame.Instance.GetSMI<ClusterFogOfWarManager.Instance>();
-        var points = (Dictionary<AxialI, float>)AccessTools.Field(fog.GetType(), "m_revealPointsByCell").GetValue(fog);
+        if (fog == null || ClusterGrid.Instance == null || CameraController.Instance == null || GameClock.Instance == null)
+            return new { loading = true };
+        var points = RevealPoints(fog);
         var camera = CameraController.Instance;
         var modeType = typeof(RevealStarMapSettings).Assembly.GetType("RevealStarMap.Runtime.RevealSessionCoordinator");
         var all = ClusterGrid.Instance.cellContents.Keys;
         return new
         {
             save = SaveLoader.GetActiveSaveFilePath(),
+            cycle = GameClock.Instance.GetCycle(), simTimeSeconds = GameClock.Instance.GetTime(),
             version = typeof(RevealStarMapSettings).Assembly.GetName().Version.ToString(),
             mapOpen = ClusterMapScreen.Instance != null && ClusterMapScreen.Instance.IsScreenActive(),
             gridWidth = Grid.WidthInCells, gridHeight = Grid.HeightInCells,
             mode = AccessTools.Property(modeType, "ActiveMode").GetValue(null, null).ToString(),
             analyzed = all.Count(c => ClusterGrid.Instance.IsCellVisible(c)), cells = all.Count,
             fog = string.Join(";", points.OrderBy(p => p.Key.r).ThenBy(p => p.Key.q).Select(p => p.Key.r + "," + p.Key.q + ":" + p.Value)),
+            revealPoints = points.OrderBy(p => p.Key.r).ThenBy(p => p.Key.q)
+                .Select(p => new { r = p.Key.r, q = p.Key.q, points = p.Value }).ToArray(),
             visible = Hash(Grid.Visible), spawnable = Hash(Grid.Spawnable),
             debug = Game.Instance.debugWasUsed, sandbox = SaveGame.Instance.sandboxEnabled,
             camera = new { position = camera.transform.position.ToString(), zoom = camera.OrthographicSize,
@@ -224,11 +364,25 @@ public sealed class Driver : MonoBehaviour
             worlds = ClusterManager.Instance.WorldContainers.Select(w => new { w.id, w.worldName, w.IsDiscovered, w.IsDupeVisited,
                 w.IsRoverVisted, offset = w.WorldOffset.ToString(), size = w.WorldSize.ToString() }).ToArray(),
             activeWorld = ClusterManager.Instance.activeWorldId,
-            rockets = Components.Clustercrafts.Select(r => new { r.Name, r = r.Location.r, q = r.Location.q,
-                targetR = r.Destination.r, targetQ = r.Destination.q, status = r.Status.ToString(),
-                traveling = r.IsFlightInProgress(), range = r.GetRangeInTiles(), speed = r.Speed,
-                id = r.GetInstanceID() }).ToArray()
+            rockets = Components.Clustercrafts.Select(RocketSnapshot).ToArray()
         };
+    }
+
+    private static object RocketSnapshot(Clustercraft rocket)
+    {
+        var selector = rocket.GetComponent<RocketClusterDestinationSelector>();
+        var traveler = rocket.GetComponent<ClusterTraveler>();
+        var path = traveler?.CurrentPath;
+        var pad = rocket.ModuleInterface.CurrentPad;
+        return new { rocket.Name, r = rocket.Location.r, q = rocket.Location.q,
+            targetR = rocket.Destination.r, targetQ = rocket.Destination.q, status = rocket.Status.ToString(),
+            traveling = rocket.IsFlightInProgress(), range = rocket.GetRangeInTiles(), speed = rocket.Speed,
+            id = rocket.GetInstanceID(), launchRequested = rocket.LaunchRequested,
+            atDestination = selector == null ? (bool?)null : selector.IsAtDestination(),
+            destinationWorld = selector?.GetDestinationWorld(), padWorld = pad == null ? (int?)null : pad.GetMyWorldId(),
+            repeat = selector == null ? (bool?)null : selector.Repeat,
+            pathAvailable = path != null, remainingNodes = path?.Count,
+            moveProgress = traveler?.GetMoveProgress(), etaSeconds = traveler?.TravelETA() };
     }
 
     private static string Hash(byte[] bytes)
