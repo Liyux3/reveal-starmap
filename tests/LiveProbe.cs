@@ -92,8 +92,12 @@ public sealed class Driver : MonoBehaviour
         if (type == typeof(RevealStarMapSettings)) options = __instance;
     }
 
+    private static readonly float[] frameSeconds = new float[240];
+    private static int frameCount;
+
     private void Update()
     {
+        frameSeconds[frameCount++ % frameSeconds.Length] = Time.unscaledDeltaTime;
         if (SaveGame.Instance != null && !Game.Instance.IsLoading() && SaveGame.Instance != lastSave)
         {
             lastSave = SaveGame.Instance;
@@ -320,6 +324,12 @@ public sealed class Driver : MonoBehaviour
                 // The world selector's own path: fade, SetActiveWorld, then UserNavigation's camera.
                 CameraController.Instance.ActiveWorldStarWipe((int)c["world"]);
                 return "Native world switch requested";
+            case "perf":
+                // Frame times over the last 240 frames; wait that long after a state change.
+                var frames = frameSeconds.Take(Math.Min(frameCount, frameSeconds.Length)).Select(s => s * 1000f)
+                    .OrderBy(ms => ms).ToArray();
+                return new { frames = frames.Length, meanMs = frames.Average(),
+                    p95Ms = frames[(int)(frames.Length * 0.95f)], maxMs = frames.Last() };
             case "shot":
                 // Unity writes its own frame at the end of this frame; no system capture permission is needed.
                 string shot = Path.Combine(Driver.Root, Path.GetFileName((string)c["name"]) + ".png");
