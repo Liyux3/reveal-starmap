@@ -10,6 +10,12 @@ if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
   echo "Invalid mod_info.yaml version: $VERSION" >&2
   exit 1
 fi
+# A released version is immutable: only its tagged commit may produce archives with that name.
+if RELEASED="$(git -C "$ROOT_DIR" rev-parse -q --verify "refs/tags/v$VERSION^{commit}" 2>/dev/null)" &&
+  [[ "$RELEASED" != "$(git -C "$ROOT_DIR" rev-parse HEAD)" ]]; then
+  echo "v$VERSION is already released from ${RELEASED:0:7}; raise the version in mod_info.yaml." >&2
+  exit 1
+fi
 if [[ -e "$DIST_DIR" ]] && { [[ -L "$DIST_DIR" ]] || ! grep -q '^staticID: liyux.RevealStarMap$' "$DIST_DIR/mod.yaml"; }; then
   echo "Refusing to replace a directory that is not a generated Reveal StarMap package: $DIST_DIR" >&2
   exit 1
