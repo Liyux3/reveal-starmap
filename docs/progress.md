@@ -447,3 +447,56 @@ Receipts: research-verdict.json, world-reload-verdict.json, native-survey.json,
 guarded-baseline.json, flight-verdict.json and restoration.json. The final Workshop
 subscriber-install gate remains failed/pending recovery; no success reply or description
 change has been published for the unresolved distribution state.
+
+## 2026-11-05: 0.4.2 Robustness and Release Path
+
+Took over the project from the Air with full autonomy. Read every user message in the
+RevealStarMap Codex thread and its sub-agents, the repository and the evidence folders.
+The main line is unchanged: Workshop item 3695988693 still carries the 26 October modern
+depot (empty filename, size 0), so new players cannot subscribe ("为什么显示无法订阅",
+30 October) and existing ones get an uninstallable copy. The user had asked on 31 October
+why a rollback was needed; the answer is that the official uploader's update cannot commit
+until the item is back in legacy format, and rollback is only the means.
+
+Recovery needs a logged-in Steam web session. Edge on the Pro is signed out of Steam.
+The Steam client is signed in, but Codex's Computer Use lacks Screen Recording and Steam
+rejects AXManualAccessibility (-25205) and AXEnhancedUserInterface (-25208), so its web
+view is not reachable without pixels. No credentials, codes or cookies were used. The
+user was asked for one of: a QR sign-in in the Air's browser pane, Screen Recording for
+Codex, or a temporary Steam CEF debugging port. GitHub `gh` tokens are invalid on both
+machines, so pushes and releases wait for `gh auth login`.
+
+Fixes, reviewed twice by Codex and accepted point by point:
+
+- A prefix on `ClusterManager.SetActiveWorld` ends world and canvas previews when the
+  player changes world, without pulling the camera back. A postfix restores
+  UserNavigation's saved view for each world left during a preview session, and the
+  destination opens at the player's zoom, so previews leave no trace in where worlds reopen.
+- The all-state camera clamp moved from an `Update` postfix to a `ConstrainToWorld`
+  postfix, before shaders and `VisibleArea` read the camera.
+- PLib 4.21 is merged into the mod with ILRepack (`/internalize /ndebug`, dotnet-ilrepack
+  2.0.45 as a local tool). A separate PLib.dll binds by simple name on Mono, the likely
+  cause of the June options crash. The first merge embedded `/Users/...` through
+  ILRepack's temporary PDB path; symbols are now omitted, the build is byte-reproducible
+  and a check rejects local paths. The public 0.4.1 binaries were verified clean.
+- `build.sh` refuses to rebuild a tagged version from other or modified inputs. This
+  followed an actual slip: a development build overwrote `dist/*0.4.1.0*.zip`, which were
+  restored from the GitHub release and match its published SHA-256 digests.
+- `scripts/publish-workshop.sh` with `workshop-publish.c` is the legacy release path
+  (content and change note only, one locked attempt folder per version, reconciliation
+  before any resubmission, subscriber install verified as a regular ZIP equal to the
+  release asset). `tests/native-session.py` shares the ONI install through the existing
+  flock, keeps it until the game exits, and records a pending restore that survives a kill.
+
+Validation: 50 managed checks. Native acceptance in U59-744825 on a copy of the 839-cycle
+campaign: the merged PLib dialog rendered, saved Language=3 and reopened in Traditional
+Chinese; navigation ended world and canvas previews with max zoom 20 and effects off;
+world-to-world previews ended at the exact prior camera; every saved view matched the
+pre-preview state; an unsaved destination opened at zoom 12; zoom 200 far outside the map
+centered on the world. Across 18 snapshots the fog dictionary had one hash and terrain
+hashes never changed. Starmap preview cost no measurable frame time (37.6 versus 36.9 ms
+mean with the map open). The profile was restored and the lock passed to InfiniGalaxy.
+Receipt: `artifacts/e2e-20261105/acceptance.json`.
+
+Directions are in [directions.md](directions.md); base game support is the largest
+audience gain and is the user's product decision.
