@@ -14,9 +14,10 @@ The mod's own world switches go through `SwitchActiveWorld`. A prefix on
 `ClusterManager.SetActiveWorld` sees every other change (world selector, notifications,
 rocket interiors) before it is announced: it ends a world or canvas preview where the
 player is going, restoring normal zoom limits and cluster effects without moving the view
-back. In both cases it first returns an oversized zoom to the pre-preview level, because
-`UserNavigation` records the leaving world's camera and would otherwise reopen that world
-at preview framing.
+back. `UserNavigation` records the leaving world's camera on every change and reopens the
+world there later, so a preview session copies those records when it begins and the
+matching postfix puts each leaving world's record back: the starting world gets the view
+the player had when the preview began, other worlds their earlier record or none.
 
 Camera bounds apply in every state as a postfix on `ConstrainToWorld`. Vanilla stops
 constraining once the view is larger than the world (common with zoom-out mods), which
