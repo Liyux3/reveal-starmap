@@ -26,7 +26,8 @@ void Check(bool value, string message)
 var mod = typeof(RevealStarMapSettings).Assembly;
 string version = Regex.Match(File.ReadAllText(Path.Combine(repo, "mod_info.yaml")), @"(?m)^version: (\S+)").Groups[1].Value;
 Check(mod.GetName().Version!.ToString() == version, "Assembly identity matches the released package version");
-Check(mod.GetManifestResourceNames().OrderBy(s => s).SequenceEqual(
+// Merged PLib brings its own string catalogs; these are the mod's.
+Check(mod.GetManifestResourceNames().Where(s => s.StartsWith("RevealStarMap.")).OrderBy(s => s).SequenceEqual(
     new[] { "RevealStarMap.en.json", "RevealStarMap.zh-CN.json", "RevealStarMap.zh-TW.json" }),
     "All three shipped languages are embedded for resilient offline fallback");
 Check(Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(Path.Combine(repo, "vendor/PLib.dll")))).ToLowerInvariant() ==
