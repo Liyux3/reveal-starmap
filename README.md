@@ -37,11 +37,9 @@ Workshop installation is currently affected by an upload-format issue. Use the
 [Workshop listing](https://steamcommunity.com/sharedfiles/filedetails/?id=3695988693)
 awaits storage recovery. Existing subscriptions stay attached to that listing.
 
-48 managed checks and 26 final native assertions pass, including actual Shift+F7/F8
-input, planet buttons, camera restoration, save/reload and permanent rocket-route analysis.
-Testing used the original mod profile, including Bigger Camera Zoom Out, on macOS
-with ONI U59-744825. Native launch prerequisites remain enforced; this fixture's
-rockets were not launch-ready, so a full flight was not exercised.
+0.4.1 passed 48 managed checks and native acceptance on macOS with ONI U59-744825:
+actual Shift+F7/F8 input, planet buttons, camera restoration, save/reload, permanent
+rocket-route analysis and a real rocket flight, using the original mod profile.
 See [validation status](docs/progress.md).
 
 ## Development

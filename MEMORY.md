@@ -24,6 +24,14 @@ Save protection, 2026-10-30, verbatim:
 
 > 反正你不要影响我原来的游玩就行。
 
+User takeover request, 2026-11-05, verbatim:
+
+> 你用我pro的登录态。你去完全接手下我们那边RevealStarMap相关的项目，深刻理解整个项目和所有我和codex/claude的交互轨迹。0. 深刻理清楚主线，持续做好。1. 分发和更新/开源/营销 2. brainstorm思路/玩法和游戏底层机制的交互 3. 底层架构和稳健/效率/性能的最优化。 优雅并漂亮的做到最优。fully autonomous。3-30day
+
+Rollback question, 2026-10-31, verbatim:
+
+> 你为啥要历史版本回退呀？我们不是要更新版本吗？把它都弄到最优雅状态就行了呀。
+
 Native acceptance uses additional copies under the project's ignored test directory.
 Never load or save over personal campaign paths. Restore temporary mod preferences and
 the original Continue pointer after the test session.
@@ -40,49 +48,35 @@ bounds; reliable restoration and migration; clean packaging and verified commits
 
 ## Overview
 
-Standalone `Oxygen Not Included: Spaced Out` debug mod focused on temporary map
-visibility tools, with an optional global preference for permanent starmap survey.
+Standalone `Oxygen Not Included: Spaced Out` mod: temporary previews of the starmap,
+any asteroid and the whole canvas that change only what is drawn, plus an optional global
+Permanent survey for rocket routes. Positioning and candidate features: [directions](docs/directions.md).
 
-GitHub release `0.4.1.0` is public and its downloaded ZIP matches the qualified artifact.
-The original Workshop entry currently has an incompatible modern-depot upload.
-Its user-authored description was restored verbatim on 2026-10-27 at the user's request;
-preserve this copy when updating binaries. GitHub hosts the verified manual package.
-Client APIs rejected legacy recovery.
-The user chose to retain the original ID and remove the duplicate. The private recovery
-item was deleted successfully and owner-authenticated readback returns FileNotFound.
-Its local cache and creation helpers were retired to system Trash. The original remains
-public. A sanitized support draft remains unsent; the user directed recovery back to
-the official uploader. That tool successfully wrote and shared the qualified ZIP,
-then failed committing the original ID with EResultFail (2). Readback retained the
-modern manifest. Evidence is in `artifacts/release-20261026/`.
-On 2026-10-30, the requested official-tool replay failed during FileShare with
-FileNotFound (9). A freshly named qualified ZIP then shared successfully through the
-same Steam Cloud contract, but its content-only update to the original item still
-returned EResultFail (2). The original public metadata/content remain unchanged.
-Steam's changelog exposes a native RevertWorkshopFile action; recovery through that
-path is unverified and awaits the owner's browser login, currently at email verification.
-Further receipts are in `artifacts/recovery-20261030/`.
+Status, 2026-11-05:
 
-Qualified package `0.4.1.0` has 48 managed checks and 26 final native assertions passed.
-Shift+F7/F8, planet buttons,
-camera restoration, native reload and permanent routes passed in the original mod profile.
-Additional 2026-10-30 native acceptance retained research earned during preview,
-ended World preview on reload, and completed a real one-hex flight after native boarding.
-The rocket reached (0,4) from (0,3), ended InFlight and stationary, and consumed one
-tile of range (6 -> 5). Earlier launch attempts had incorrectly checked full boarding
-readiness before requesting boarding, and later waits exposed native modal/pause holds.
-The successful run used the unchanged production DLL and an isolated test driver.
-The first official-uploader attempt stalled on a Documents permission request. The
-SDK fallback initially selected the wrong storage format. A subsequent official retry
-used the verified staging folder outside Documents and reached the server commit,
-which failed. No expanded Documents permission was granted.
-Do not publish a modern depot directory for this game. Require GetItemInstallInfo to
-return a regular ZIP, root-level manifests, and matching qualified member hashes.
-The additional native test process has exited, temporary drivers are in system Trash,
-original mod selections/config/preferences are restored, and the shared profile lock
-is released. Browser authentication for original-item recovery remains pending.
-Current implementation: [architecture](docs/architecture.md).
-Release evidence and remaining checks: [progress](docs/progress.md).
+- Code: `0.4.2.0` on main, 50 managed checks and native acceptance passed
+  (`artifacts/e2e-20261105/acceptance.json`); not yet tagged or released.
+- GitHub: `v0.4.1.0` is the latest release. Pushes and releases wait for
+  `gh auth login`; the token is invalid on both the Pro and the Air.
+- Workshop `3695988693`: still the 26 October modern depot (empty filename, size 0), so it
+  cannot be subscribed or installed. Legacy content commits to a depot item fail with
+  EResultFail (2), so first revert to the 30 July changelog entry (timestamp 1785435334,
+  legacy ZIP handle 14374718941853451483) from a logged-in Steam web session, then run
+  `scripts/publish-workshop.sh`. The user asked on 31 October why roll back at all: the
+  rollback is only the means, the goal is the newest version through the official path.
+- After the fix: reply once to the three comments, apply the point-edited description and
+  publish 0.4.2. Drafts are in `artifacts/workshop/drafts/`.
+- Steam web login: Edge on the Pro is signed out; the signed-in Steam client is not
+  reachable (Codex lacks Screen Recording; Steam refuses AX web trees). Options offered
+  to the user: QR sign-in in the Air's browser pane, Screen Recording for Codex, or a
+  temporary Steam CEF debugging port. Never type passwords or codes or read cookies.
+
+Rules that stay: never publish a modern depot directory; accept a release only when a
+subscriber install is a regular ZIP equal to the release asset; keep the Workshop
+description user-authored with point edits only; never load or save personal campaigns,
+use copies under `artifacts/`; run native tests through `tests/native-session.py`, which
+shares the install with other ONI projects through `mods/.native-validation.lock`.
+Current implementation: [architecture](docs/architecture.md). History: [progress](docs/progress.md).
 
 Primary distribution points:
 
@@ -94,6 +88,7 @@ Current user-facing feature set:
 - full starmap reveal and restore
 - asteroid-side-screen `Preview map` / `End preview` button
 - full live simulation canvas reveal and restore
+- world and canvas previews end when the player switches world, leaving saved views untouched
 - configurable hotkeys in `Mod Options`
 - default reversible preview; optional permanent analysis for real rocket navigation
 - global preferences for language, shortcuts, action and feedback; silent preview by default
