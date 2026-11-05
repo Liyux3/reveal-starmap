@@ -10,6 +10,6 @@ for dll in mscorlib System System.Core netstandard Assembly-CSharp Assembly-CSha
 done
 "$DOTNET_BIN" "$CSC_DLL" -nologo -noconfig -nostdlib+ -langversion:latest \
   -target:library -out:"$TEST_ROOT/LiveProbe.dll" "$ROOT_DIR/tests/LiveProbe.cs" "${REFS[@]}" \
-  -r:"$ROOT_DIR/dist/liyux.RevealStarMap/RevealStarMap.dll" -r:"$PLIB_DLL"
+  -r:"$ROOT_DIR/dist/liyux.RevealStarMap/RevealStarMap.dll"
 printf '%s\n' "$TEST_ROOT" > "$TEST_ROOT/probe-root.txt"
 printf '%s\n' "$TEST_ROOT/LiveProbe.dll"

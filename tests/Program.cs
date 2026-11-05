@@ -32,6 +32,9 @@ Check(mod.GetManifestResourceNames().OrderBy(s => s).SequenceEqual(
 Check(Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(Path.Combine(repo, "vendor/PLib.dll")))).ToLowerInvariant() ==
     "b0144f909e00044ebd3b5880676ceb3aba756d579ea3a63aebd7a34b0777fda6",
     "Build uses the reviewed PLib binary");
+var mergedOptions = mod.GetType("PeterHan.PLib.Options.POptions");
+Check(mergedOptions != null && !mergedOptions.IsPublic && mod.GetReferencedAssemblies().All(a => a.Name != "PLib"),
+    "PLib is merged and internal, so another mod's PLib cannot replace it");
 using (var archive = ZipFile.OpenRead(Path.Combine(repo, "dist", "RevealStarMap-" + version + ".zip")))
 {
     string package = Path.Combine(repo, "dist", "liyux.RevealStarMap");
@@ -43,9 +46,9 @@ using (var archive = ZipFile.OpenRead(Path.Combine(repo, "dist", "RevealStarMap-
         using var stream = e.Open();
         return SHA256.HashData(stream).SequenceEqual(SHA256.HashData(File.ReadAllBytes(Path.Combine(repo, "dist", e.FullName))));
     }), "Release archive has exactly the packaged files and matching bytes");
-    Check(contents.Contains("liyux.RevealStarMap/PLib.LICENSE.txt") &&
+    Check(contents.Contains("liyux.RevealStarMap/PLib.LICENSE.txt") && !contents.Contains("liyux.RevealStarMap/PLib.dll") &&
         contents.All(p => !p.Contains("LiveProbe") && !p.Contains("Assembly-CSharp") && !p.Contains("System.Security")),
-        "Package includes dependency license and excludes game assemblies and test drivers");
+        "Package includes the PLib license and no separate PLib, game assemblies or test drivers");
 }
 
 // ONI's Steam installer requires a ZIP file, with mod.yaml at its root.

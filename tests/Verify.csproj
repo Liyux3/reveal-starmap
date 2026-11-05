@@ -11,8 +11,8 @@
     <Content Include="../translations/*.json" Link="translations/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     <!-- Test-host shim for ONI's .NET Framework Newtonsoft.Json assembly. Never shipped in the mod. -->
     <PackageReference Include="System.Security.Permissions" Version="8.0.0" />
+    <!-- The shipped assembly, with PLib merged and internal. -->
     <Reference Include="RevealStarMap" HintPath="../dist/liyux.RevealStarMap/RevealStarMap.dll" />
-    <Reference Include="PLib" HintPath="../vendor/PLib.dll" />
     <Reference Include="Assembly-CSharp" HintPath="$(OniManagedPath)/Assembly-CSharp.dll" />
     <Reference Include="Assembly-CSharp-firstpass" HintPath="$(OniManagedPath)/Assembly-CSharp-firstpass.dll" />
     <Reference Include="Newtonsoft.Json" HintPath="$(OniManagedPath)/Newtonsoft.Json.dll" />

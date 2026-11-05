@@ -8,7 +8,6 @@ using System.Reflection;
 using HarmonyLib;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using PeterHan.PLib.Options;
 using UnityEngine;
 
 namespace RevealStarMap.LiveTests;
@@ -230,7 +229,10 @@ public sealed class Driver : MonoBehaviour
                 button.SignalClick(KKeyCode.Mouse0);
                 return button.name;
             case "options":
-                POptions.ShowDialog(typeof(RevealStarMapSettings));
+                // PLib is internal to the mod assembly, so reach its own POptions there.
+                typeof(RevealStarMapSettings).Assembly.GetType("PeterHan.PLib.Options.POptions", true)
+                    .GetMethod("ShowDialog", BindingFlags.Public | BindingFlags.Static)
+                    .Invoke(null, new object[] { typeof(RevealStarMapSettings), null });
                 return "Opened real PLib options dialog";
             case "option":
                 var cats = (IEnumerable)AccessTools.Field(options.GetType(), "optionCategories").GetValue(options);
