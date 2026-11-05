@@ -12,19 +12,22 @@ excluded from the managed verifier and production build. Their default evidence 
 `artifacts/live-tests` folder. Set `LIVE_TEST_ROOT` for a separate run, and copy the emitted
 `probe-root.txt` beside the installed driver DLL. They are never Workshop content.
 
-The driver must be installed as a separate local test mod beside an enabled candidate with
-a unique test static ID. Steam may replace a modified subscribed DLL; duplicate static IDs
-also cause loader ambiguity. Back up mods.json, the subscribed package and mod config first.
-Check `../.codex/oni-live-session.json`, other project sessions and the running game before
-staging a profile. Record the owner and start time; a shared game restart invalidates the
-remaining run. Restore shared preferences only after the current owner releases the game.
+`native-session.py SAVE [MINUTES]` stages one session. It takes the exclusive lock on
+`mods/.native-validation.lock` shared with the other local ONI projects, snapshots
+mods.json, kplayerprefs, unlocks, this mod's config and Unity's preferences, installs
+`dist` as `liyux.RevealStarMapCandidate` beside the driver, copies SAVE into the evidence
+root and launches ONI windowed. Drive it with `live-command.sh` and end with `quit`; when
+ONI exits, or after MINUTES (default 30) with a graceful quit, everything is restored and
+the lock released. Never launch or quit ONI while another project holds the lock.
 Keep campaign inputs as copies under the evidence root. Load/save commands only accept
 save basenames there. Use LoadingOverlay.Load for native reloads, then wait for IsLoading
 to clear before recording a snapshot. The driver pauses newly loaded campaigns.
 
 Commands exchange JSON via command.json/result.json, with a unique request ID and archived
 responses. Examples: options, option, ui, click, load, snapshot, starmap, canvas, world,
-research, readiness, route, flight, save and quit. Buttons must be selected from current ui output. `route` reports
+switch, research, readiness, route, flight, save and quit. `switch` changes world through
+the world selector's own star-wipe path; snapshots include `savedViews`, the per-world
+camera zoom that UserNavigation restores when the player returns to a world. Buttons must be selected from current ui output. `route` reports
 whether it used a real rocket or a temporary selector fixture; neither implies live flight.
 
 The driver sets runInBackground only in the test process. Quit normally, remove both test

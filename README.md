@@ -1,13 +1,16 @@
 # Reveal StarMap
 
-Temporary map previews for **Oxygen Not Included: Spaced Out!**
+Temporary map previews for **Oxygen Not Included: Spaced Out!** Look at everything,
+then put it back.
 
 - **Shift + F7** previews the starmap. Press again to return.
 - **Shift + F8** previews the canvas containing all worlds. Press again to return.
 - Select an asteroid and use **Preview map** or **End preview** in its details.
 
-Previews preserve real exploration progress. World and canvas previews restore your
-previous camera view when ended and close when reloading a save.
+Previews change only what is drawn. Exploration, research, telescope rewards and
+achievements stay as they were, and hidden areas do not start simulating, unlike debug
+mode. World and canvas previews restore your previous camera view when ended, end when
+you switch to another world, and close when reloading a save.
 
 ## Configure Once
 
@@ -56,14 +59,12 @@ Previous generated folders are moved to the system Trash.
 The build creates `dist/liyux.RevealStarMap`, a Local-install ZIP containing that
 folder and a separate `-workshop.zip` with package files at its root.
 
-ONI's current Steam installer expects a legacy ZIP file, rather than a modern Workshop
-depot directory. Use the official ONI Mod Uploader for the folder, or an explicitly
-legacy upload of the root-level Workshop ZIP. Validate that Steam's GetItemInstallInfo
-returns a regular ZIP file before accepting a release. The unsafe SteamCMD VDF has
-been retired. Publisher app 636750 and consumer app 457140 are distinct contexts.
-The existing Workshop item `3695988693` is the sole publication target. Its conversion
-to modern storage has not been reversed by the available client APIs; retain the
-listing while platform recovery remains unverified. Preserve its user-authored description.
+ONI's Steam installer expects a legacy ZIP file, not a modern Workshop depot directory.
+Release in this order: raise the version, run `./scripts/check.sh`, tag and publish the
+GitHub release, then run `./scripts/publish-workshop.sh VERSION NOTE_FILE`. It sends the
+release's Workshop ZIP to item `3695988693` through the official uploader's legacy
+contract, changes only the file and change note, and verifies a subscriber install.
+Keep the Workshop description user-authored; edit it on Steam.
 
 The verifier uses the built DLL, actual PLib and ONI managed types. It covers analysis
 preservation, serialization, settings migration, typed option write-back and all
@@ -71,5 +72,8 @@ translation catalogs, legacy exploration coordinates and archive contents.
 Live rendering, native save loading and flight require the game.
 
 `./scripts/install-local.sh` installs a local copy. Enable only one Local or Workshop
-copy with the same mod ID while testing.
+copy with the same mod ID while testing. For in-game checks, build the driver with
+`tests/build-live-probe.sh` and run `tests/native-session.py SAVE`, which shares the
+game install with other local projects through a lock and restores your mod profile,
+preferences and config afterwards; [tests/README.md](tests/README.md) lists the commands.
 
