@@ -5,11 +5,20 @@ using UnityEngine;
 namespace RevealStarMap.Patches;
 
 [HarmonyPatch(typeof(CameraController), "ConstrainToWorld")]
-public static class CameraController_CanvasPreview_Patch
+public static class CameraController_ConstrainToWorld_Patch
 {
+    // Vanilla constrains to the active world; the canvas preview uses the whole canvas.
     public static bool Prefix()
     {
         return !RevealSessionCoordinator.IsCanvasPreviewActive;
+    }
+
+    // Vanilla stops constraining once the view is larger than the world. Constrain here, before
+    // Update publishes the camera to shaders and VisibleArea, so culling sees the final position.
+    [HarmonyPriority(Priority.Last)]
+    public static void Postfix(CameraController __instance)
+    {
+        CameraControllerVanillaBounds.Apply(__instance);
     }
 }
 
@@ -93,19 +102,11 @@ internal static class CameraControllerVanillaBounds
 }
 
 [HarmonyPatch(typeof(CameraController), "Update")]
-public static class CameraController_Update_Bounds_Patch
+public static class CameraController_Update_ZoomLimit_Patch
 {
-    [HarmonyPrefix]
     [HarmonyPriority(Priority.Last)]
     public static void Prefix(CameraController __instance)
     {
         RevealSessionCoordinator.EnforcePreviewZoomLimit(__instance);
-    }
-
-    [HarmonyPostfix]
-    [HarmonyPriority(Priority.Last)]
-    public static void Postfix(CameraController __instance)
-    {
-        CameraControllerVanillaBounds.Apply(__instance);
     }
 }

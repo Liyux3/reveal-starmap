@@ -31,7 +31,7 @@ internal static class GridRevealRuntime
         ManagementMenu.Instance?.CloseAll();
         // Match the stock Oversee Planetoid action: switch synchronously, then frame it.
         // No delayed star-wipe callback can outlive an ended or superseded preview.
-        ClusterManager.Instance.SetActiveWorld(world.id);
+        RevealSessionCoordinator.SwitchActiveWorld(world.id);
         controller?.SnapTo(focus, zoom);
     }
 

@@ -17,6 +17,7 @@ internal static class RevealSessionCoordinator
     private static int activeWorldId = -1;
     private static bool pendingCameraSafetyMigration;
     private static bool pendingForcedCameraReset;
+    private static bool switchingWorld;
     private static bool cameraSnapshotValid;
     private static Vector3 cameraSnapshotPosition;
     private static float cameraSnapshotOrthographicSize;
@@ -141,6 +142,33 @@ internal static class RevealSessionCoordinator
         BeginPreview(RevealPreviewMode.World, world.id);
         GridRevealRuntime.FocusWorld(world);
         Notify("status.world.on", name);
+    }
+
+    internal static void SwitchActiveWorld(int worldId)
+    {
+        if (ClusterManager.Instance == null) return;
+        switchingWorld = true;
+        try { ClusterManager.Instance.SetActiveWorld(worldId); }
+        finally { switchingWorld = false; }
+    }
+
+    // UserNavigation records the leaving world's camera when a change is announced, so keep
+    // preview framing out of it. A change the player makes (world selector, notifications,
+    // rocket interiors) ends the preview where they are going instead of pulling them back.
+    internal static void BeforeActiveWorldChange(int worldId)
+    {
+        RevealPreviewMode mode = ActiveMode;
+        if ((mode != RevealPreviewMode.World && mode != RevealPreviewMode.Canvas) ||
+            ClusterManager.Instance == null || ClusterManager.Instance.activeWorldId == worldId)
+            return;
+
+        CameraController? controller = CameraController.Instance;
+        if (controller != null) NormalizeLeavingZoom(controller);
+        if (switchingWorld) return;
+
+        EndPreviewInternal(restoreCamera: false);
+        ReleaseCameraSnapshot();
+        Notify(mode == RevealPreviewMode.Canvas ? "status.canvas.off" : "status.world.off");
     }
 
     internal static void ResetRuntimeState()
@@ -364,7 +392,8 @@ internal static class RevealSessionCoordinator
             SetExactMaxOrthographicSize(controller, cameraSnapshotMaxOrthographicSize);
             if (ClusterManager.Instance != null && ClusterManager.Instance.GetWorld(cameraSnapshotWorldId) != null)
             {
-                ClusterManager.Instance.SetActiveWorld(cameraSnapshotWorldId);
+                NormalizeLeavingZoom(controller);
+                SwitchActiveWorld(cameraSnapshotWorldId);
                 controller.SnapTo(cameraSnapshotPosition, cameraSnapshotOrthographicSize);
             }
             ConstrainCameraToActiveWorld();
@@ -372,6 +401,36 @@ internal static class RevealSessionCoordinator
 
         cameraSnapshotValid = false;
         cameraSnapshotWorldId = -1;
+    }
+
+    // Ends a grid preview where the player navigated: normal camera rules return, the view stays.
+    private static void ReleaseCameraSnapshot()
+    {
+        CameraController? controller = CameraController.Instance;
+        if (controller != null)
+        {
+            if (controller.ignoreClusterFX)
+            {
+                controller.ToggleClusterFX();
+            }
+
+            controller.FreeCameraEnabled = false;
+            if (cameraSnapshotValid)
+            {
+                SetExactMaxOrthographicSize(controller, cameraSnapshotMaxOrthographicSize);
+            }
+        }
+
+        cameraSnapshotValid = false;
+        cameraSnapshotWorldId = -1;
+    }
+
+    private static void NormalizeLeavingZoom(CameraController controller)
+    {
+        if (cameraSnapshotValid && controller.targetOrthographicSize > cameraSnapshotMaxOrthographicSize)
+        {
+            controller.SnapTo(controller.transform.GetPosition(), cameraSnapshotOrthographicSize);
+        }
     }
 
     private static RevealSnapshotState? GetState()

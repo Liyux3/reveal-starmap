@@ -25,7 +25,6 @@ public static class SaveGame_OnSpawn_Patch
             return;
         }
 
-        RevealStarMapSettingsManager.Reload();
         __instance.gameObject.AddOrGet<RevealSnapshotState>();
         __instance.gameObject.AddOrGet<RevealStarMapController>();
     }
