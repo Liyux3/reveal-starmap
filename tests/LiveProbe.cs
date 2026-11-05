@@ -316,6 +316,10 @@ public sealed class Driver : MonoBehaviour
             case "world":
                 Call("RevealSessionCoordinator", "ToggleWorld", ClusterManager.Instance.GetWorld((int)c["world"]));
                 return "World preview requested";
+            case "switch":
+                // The world selector's own path: fade, SetActiveWorld, then UserNavigation's camera.
+                CameraController.Instance.ActiveWorldStarWipe((int)c["world"]);
+                return "Native world switch requested";
             case "world-ui":
                 ClusterMapScreen.Instance.SelectEntity(ClusterManager.Instance.GetWorld((int)c["world"]).GetComponent<ClusterGridEntity>());
                 return "World side screen targeted";
@@ -364,8 +368,23 @@ public sealed class Driver : MonoBehaviour
             worlds = ClusterManager.Instance.WorldContainers.Select(w => new { w.id, w.worldName, w.IsDiscovered, w.IsDupeVisited,
                 w.IsRoverVisted, offset = w.WorldOffset.ToString(), size = w.WorldSize.ToString() }).ToArray(),
             activeWorld = ClusterManager.Instance.activeWorldId,
+            previewWorld = AccessTools.Property(modeType, "ActiveWorldId").GetValue(null, null),
+            savedViews = SavedViews(),
             rockets = Components.Clustercrafts.Select(RocketSnapshot).ToArray()
         };
+    }
+
+    // UserNavigation's per-world camera, restored when the player returns to that world.
+    private static object SavedViews()
+    {
+        var navigation = SaveGame.Instance.GetComponent<UserNavigation>();
+        var views = navigation == null ? null :
+            AccessTools.Field(typeof(UserNavigation), "worldCameraPositions").GetValue(navigation) as IDictionary;
+        if (views == null) return null;
+        var result = new List<object>();
+        foreach (DictionaryEntry entry in views)
+            result.Add(new { world = entry.Key, zoom = Traverse.Create(entry.Value).Field("orthoSize").GetValue<float>() });
+        return result;
     }
 
     private static object RocketSnapshot(Clustercraft rocket)
