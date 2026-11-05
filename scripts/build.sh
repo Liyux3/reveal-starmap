@@ -44,8 +44,17 @@ done
   "-pathmap:$ROOT_DIR=/_/RevealStarMap" -out:"$BUILD_DIR/RevealStarMap.dll" \
   "${RESOURCES[@]}" "${SOURCE_FILES[@]}" "${REFERENCES[@]}" "-r:$PLIB_DLL"
 
-cp "$BUILD_DIR/RevealStarMap.dll" "$BUILD_DIR/RevealStarMap.pdb" "$ROOT_DIR/mod.yaml" \
-  "$ROOT_DIR/mod_info.yaml" "$PLIB_DLL" "$ROOT_DIR/vendor/PLib.LICENSE.txt" "$PACKAGE/"
+# Merge and internalize PLib, as its author recommends. A separate PLib.dll binds by simple name
+# on Mono, so another mod's older copy loaded first could replace the one this build was tested with.
+MERGED="$BUILD_DIR/merged"
+rm -rf "$MERGED"
+mkdir -p "$MERGED"
+(cd "$ROOT_DIR" && "$DOTNET_BIN" tool restore >/dev/null &&
+  "$DOTNET_BIN" tool run ilrepack /internalize "/lib:$ONI_MANAGED_PATH" "/out:$MERGED/RevealStarMap.dll" \
+    "$BUILD_DIR/RevealStarMap.dll" "$PLIB_DLL" >/dev/null)
+
+cp "$MERGED/RevealStarMap.dll" "$MERGED/RevealStarMap.pdb" "$ROOT_DIR/mod.yaml" \
+  "$ROOT_DIR/mod_info.yaml" "$ROOT_DIR/vendor/PLib.LICENSE.txt" "$PACKAGE/"
 cp "$ROOT_DIR"/translations/*.json "$PACKAGE/translations/"
 (cd "$STAGE" && zip -qrX "RevealStarMap-$VERSION.zip" liyux.RevealStarMap)
 (cd "$PACKAGE" && zip -qrX "$STAGE/RevealStarMap-$VERSION-workshop.zip" .)
