@@ -10,6 +10,20 @@ position and actual displayed zoom. World switching uses the stock Oversee Plane
 contract, `SetActiveWorld` followed by `SnapTo`, so no delayed fade callback can outlive
 a preview. Preview zoom limits clamp both current and target zoom. World/canvas previews end on reload; starmap preview may persist.
 
+The mod's own world switches go through `SwitchActiveWorld`. A prefix on
+`ClusterManager.SetActiveWorld` sees every other change (world selector, notifications,
+rocket interiors) before it is announced: it ends a world or canvas preview where the
+player is going, restoring normal zoom limits and cluster effects without moving the view
+back. In both cases it first returns an oversized zoom to the pre-preview level, because
+`UserNavigation` records the leaving world's camera and would otherwise reopen that world
+at preview framing.
+
+Camera bounds apply in every state as a postfix on `ConstrainToWorld`. Vanilla stops
+constraining once the view is larger than the world (common with zoom-out mods), which
+let the camera drift into black space; the postfix centers it instead. Running there,
+before `Update` publishes the camera to shaders and `VisibleArea`, keeps culling on the
+final position. The canvas preview skips the vanilla world constraint and uses the canvas.
+
 `RevealSnapshotState` retains the old serialized field names for compatibility.
 It is attached during `SaveGame.OnPrefabInit`, before `SaveLoadRoot.LoadInternal` looks
 up components for deserialization. The input controller starts at `OnSpawn`, after loading.
@@ -68,6 +82,8 @@ notice, moves the preceding generated folder to system Trash and emits a version
 `check.sh` builds once, lints shell scripts when ShellCheck is installed, and runs the
 managed verifier against actual game assemblies. Assembly and package versions,
 embedded catalogs, PLib identity and every archive file are verified together.
+A released version is immutable: when tag `vVERSION` exists, only its commit can build
+archives with that version, so development starts by raising `mod_info.yaml`.
 
 Workshop delivery is a separate contract: current `KMod.Steam.MakeMod` requires
 `File.Exists(GetItemInstallInfo(...))`, then constructs a ZIP file source. A successful
@@ -75,6 +91,14 @@ Steam depot upload/download alone is insufficient. Build emits a root-level
 `-workshop.zip` alongside the enclosing-folder Local-install archive; managed checks
 validate both member layouts and hashes. Use the official uploader or a legacy ZIP
 publication path, with creator app 636750 distinct from consumer game 457140.
+
+`scripts/publish-workshop.sh VERSION NOTE_FILE` is that legacy path. It downloads the
+Workshop ZIP from GitHub release `vVERSION`, so both channels carry identical bytes, then
+`workshop-publish.c` stages it in Steam Cloud and commits only the file and a change note
+through the uploader's RemoteStorage calls, leaving title, description, tags and preview
+alone. Public readback must show a ZIP filename and the exact size, and a final download
+as the game must install a regular file equal to the release ZIP. Receipts are written
+before and after each remote write under `artifacts/workshop/`.
 
 The sole Workshop target is `3695988693`. After conversion to modern storage,
 legacy uploads completed with EResultFail (2) and retained the depot manifest.
