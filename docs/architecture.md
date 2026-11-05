@@ -55,7 +55,11 @@ after the dictionary commit. No temporary navigation bypass is used.
 
 ## Options and Compatibility
 
-PLib 4.21 is vendored. Custom enum entries return actual enums on save. Dropdown minimum
+PLib 4.21 is vendored and merged into `RevealStarMap.dll` with its types internalized, the
+packaging PLib's author uses. A separate `PLib.dll` binds by simple name on Mono, so on Mac
+and Linux another mod's older copy, loaded first, could stand in for the tested one; that
+is the likely cause of the June options crash report. Each PLib copy now draws only the
+dialogs of the mods that registered with it. Custom enum entries return actual enums on save. Dropdown minimum
 widths use layout units, avoiding the older `SetMinWidthInCharacters` font-metric dependency.
 `IOptions.OnOptionsChanged` applies settings immediately; unknown enums select safe defaults.
 Input respects application focus, loading, native fades, modal screens, text fields and
@@ -77,7 +81,8 @@ See [localization](localization.md) for catalog rules.
 
 `build-env.sh` resolves the installed .NET SDK and explicit or default ONI managed path.
 The shell build and project file use the pinned `vendor/PLib.dll`; arbitrary subscribed
-mod copies are never selected. `build.sh` stages a clean package, includes the PLib MIT
+mod copies are never selected. `build.sh` compiles, merges PLib with ILRepack (pinned as a
+local .NET tool in `.config/dotnet-tools.json`), stages a clean package with the PLib MIT
 notice, moves the preceding generated folder to system Trash and emits a versioned ZIP.
 `check.sh` builds once, lints shell scripts when ShellCheck is installed, and runs the
 managed verifier against actual game assemblies. Assembly and package versions,

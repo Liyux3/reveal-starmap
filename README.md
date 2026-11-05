@@ -52,8 +52,9 @@ See [validation status](docs/progress.md).
 ```
 
 An installed .NET SDK can be used directly; bootstrap is needed only when none is available.
-Set `ONI_MANAGED_PATH` for a nondefault game installation. The build uses the pinned
-PLib in `vendor`, embeds all three languages and creates the upload folder and ZIP together.
+Set `ONI_MANAGED_PATH` for a nondefault game installation. The build merges the pinned
+PLib in `vendor` into the mod assembly, so no other mod's PLib can replace it, embeds all
+three languages and creates the upload folder and ZIP together.
 Previous generated folders are moved to the system Trash.
 
 The build creates `dist/liyux.RevealStarMap`, a Local-install ZIP containing that
@@ -66,7 +67,7 @@ release's Workshop ZIP to item `3695988693` through the official uploader's lega
 contract, changes only the file and change note, and verifies a subscriber install.
 Keep the Workshop description user-authored; edit it on Steam.
 
-The verifier uses the built DLL, actual PLib and ONI managed types. It covers analysis
+The verifier uses the shipped DLL, its merged PLib and ONI managed types. It covers analysis
 preservation, serialization, settings migration, typed option write-back and all
 translation catalogs, legacy exploration coordinates and archive contents.
 Live rendering, native save loading and flight require the game.

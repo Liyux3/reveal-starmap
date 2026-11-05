@@ -121,9 +121,11 @@ Persistent save state:
 
 Build and dependency policy:
 
-- `vendor/PLib.dll` is the pinned compatibility copy, currently `PLib 4.21`
-- `scripts/build.sh` and `src/OniModStarter.csproj` use the pinned vendor copy;
-  `scripts/check.sh` is the final build, managed and package gate
+- `vendor/PLib.dll` is the pinned compatibility copy, currently `PLib 4.21`; since 0.4.2
+  `scripts/build.sh` merges it into `RevealStarMap.dll` (ILRepack, internalized), so the
+  package has no separate `PLib.dll` for another mod's copy to shadow on Mono
+- `scripts/check.sh` is the final build, managed and package gate; a released tag's version
+  cannot be rebuilt from other code
 - target framework is `net48` to match current ONI / Harmony requirements
 
 Config UI policy:
