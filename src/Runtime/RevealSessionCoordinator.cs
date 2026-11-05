@@ -475,6 +475,9 @@ internal static class RevealSessionCoordinator
             if (cameraSnapshotValid)
             {
                 SetExactMaxOrthographicSize(controller, cameraSnapshotMaxOrthographicSize);
+                // The destination may have no saved view yet; UserNavigation then opens it at
+                // the current target zoom, which should be the player's, not the preview's.
+                controller.SnapTo(controller.transform.GetPosition(), cameraSnapshotOrthographicSize);
             }
         }
 

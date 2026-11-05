@@ -109,8 +109,11 @@ def install(saved):
 def quit_and_wait():
     # Keep asking the driver to quit; never return while the game still runs.
     while game_running():
-        (RUN / "command.json").write_text(json.dumps({"id": f"session-quit-{time.time():.0f}", "action": "quit"}))
-        log("Asked the driver to quit; waiting for ONI to exit")
+        try:
+            (RUN / "command.json").write_text(json.dumps({"id": f"session-quit-{time.time():.0f}", "action": "quit"}))
+            log("Asked the driver to quit; waiting for ONI to exit")
+        except OSError as error:
+            log(f"Could not ask the driver to quit ({error}); still waiting for ONI to exit")
         for _ in range(60):
             if not game_running():
                 return

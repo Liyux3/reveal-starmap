@@ -13,7 +13,7 @@ fi
 # A released version is immutable: only its tagged commit, unmodified, may produce archives with that name.
 if RELEASED="$(git -C "$ROOT_DIR" rev-parse -q --verify "refs/tags/v$VERSION^{commit}" 2>/dev/null)" &&
   { [[ "$RELEASED" != "$(git -C "$ROOT_DIR" rev-parse HEAD)" ]] ||
-    [[ -n "$(git -C "$ROOT_DIR" status --porcelain -- src translations vendor mod.yaml mod_info.yaml scripts)" ]]; }; then
+    [[ -n "$(git -C "$ROOT_DIR" status --porcelain -- src translations vendor mod.yaml mod_info.yaml scripts .config)" ]]; }; then
   echo "v$VERSION is already released from ${RELEASED:0:7}; raise the version in mod_info.yaml." >&2
   exit 1
 fi

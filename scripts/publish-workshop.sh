@@ -14,6 +14,11 @@ SDK="$ONI_APP_PATH/Contents/PlugIns/steam_api.bundle/Contents/MacOS/libsteam_api
 ZIP_NAME="RevealStarMap-$VERSION-workshop.zip"
 OUT="$ROOT_DIR/artifacts/workshop/$VERSION"
 mkdir -p "$OUT"
+if ! mkdir "$OUT/.active" 2>/dev/null; then
+  echo "Another publication of $VERSION is running, or one was interrupted; inspect $OUT and remove $OUT/.active" >&2
+  exit 1
+fi
+trap 'rmdir "$OUT/.active"' EXIT
 
 readback() {
   curl -fsS -X POST https://api.steampowered.com/ISteamRemoteStorage/GetPublishedFileDetails/v1/ \
@@ -39,8 +44,12 @@ if [[ ! -f "$OUT/publish.json" ]]; then
   readback before
   "$OUT/workshop-publish" "$SDK" publish "$OWNER" "$OUT/$ZIP_NAME" "$NOTE" "$OUT/publish.json"
   readback after
-elif [[ "$(field publish.json phase)" == completed && "$(field publish.json result)" == 1 ]]; then
+elif [[ "$(field publish.json phase)" == completed && "$(field publish.json result)" == 1 &&
+  "$(field publish.json item)" == "$ITEM" && "$(field publish.json legalAgreementRequired)" == False ]]; then
   readback after
+elif [[ "$(field publish.json phase)" == completed ]]; then
+  echo "The earlier submission completed without success; see $OUT/publish.json" >&2
+  exit 1
 else
   # The earlier commit's outcome is unknown: accept it only if the item already shows it.
   readback after
