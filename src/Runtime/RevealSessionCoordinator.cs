@@ -1,3 +1,7 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Reflection;
 using System.Threading;
 using HarmonyLib;
 using RevealStarMap.Patches;
@@ -13,6 +17,8 @@ internal static class RevealSessionCoordinator
     private static readonly AccessTools.FieldRef<CameraController, float> MaxOrthographicSizeRef =
         AccessTools.FieldRefAccess<CameraController, float>("maxOrthographicSize");
 
+    private static readonly FieldInfo? SavedViewsField = AccessTools.Field(typeof(UserNavigation), "worldCameraPositions");
+
     private static int activeMode;
     private static int activeWorldId = -1;
     private static bool pendingCameraSafetyMigration;
@@ -23,6 +29,7 @@ internal static class RevealSessionCoordinator
     private static float cameraSnapshotOrthographicSize;
     private static float cameraSnapshotMaxOrthographicSize;
     private static int cameraSnapshotWorldId = -1;
+    private static Dictionary<int, object>? savedViewsBefore;
 
     internal static RevealPreviewMode ActiveMode => (RevealPreviewMode)Volatile.Read(ref activeMode);
 
@@ -152,23 +159,65 @@ internal static class RevealSessionCoordinator
         finally { switchingWorld = false; }
     }
 
-    // UserNavigation records the leaving world's camera when a change is announced, so keep
-    // preview framing out of it. A change the player makes (world selector, notifications,
-    // rocket interiors) ends the preview where they are going instead of pulling them back.
-    internal static void BeforeActiveWorldChange(int worldId)
+    // UserNavigation records the leaving world's camera when a change is announced. The returned
+    // view puts that record back afterwards, so a preview leaves no trace in where the game
+    // reopens each world. A change the player makes (world selector, notifications, rocket
+    // interiors) also ends the preview where they are going instead of pulling them back.
+    internal static SavedView? BeforeActiveWorldChange(int worldId)
     {
+        if (ClusterManager.Instance == null || ClusterManager.Instance.activeWorldId == worldId) return null;
+        SavedView? view = cameraSnapshotValid ? SavedViewFor(ClusterManager.Instance.activeWorldId) : null;
         RevealPreviewMode mode = ActiveMode;
-        if ((mode != RevealPreviewMode.World && mode != RevealPreviewMode.Canvas) ||
-            ClusterManager.Instance == null || ClusterManager.Instance.activeWorldId == worldId)
-            return;
+        if (!switchingWorld && (mode == RevealPreviewMode.World || mode == RevealPreviewMode.Canvas))
+        {
+            EndPreviewInternal(restoreCamera: false);
+            ReleaseCameraSnapshot();
+            Notify(mode == RevealPreviewMode.Canvas ? "status.canvas.off" : "status.world.off");
+        }
 
-        CameraController? controller = CameraController.Instance;
-        if (controller != null) NormalizeLeavingZoom(controller);
-        if (switchingWorld) return;
+        return view;
+    }
 
-        EndPreviewInternal(restoreCamera: false);
-        ReleaseCameraSnapshot();
-        Notify(mode == RevealPreviewMode.Canvas ? "status.canvas.off" : "status.world.off");
+    internal static void AfterActiveWorldChange(SavedView? view)
+    {
+        IDictionary? views = SavedViews();
+        if (view == null || views == null) return;
+        if (view.Value != null) views[view.World] = view.Value;
+        else views.Remove(view.World);
+    }
+
+    private static IDictionary? SavedViews()
+    {
+        UserNavigation? navigation = SaveGame.Instance == null ? null : SaveGame.Instance.GetComponent<UserNavigation>();
+        return navigation == null || SavedViewsField == null ? null : SavedViewsField.GetValue(navigation) as IDictionary;
+    }
+
+    private static SavedView? SavedViewFor(int world)
+    {
+        if (savedViewsBefore == null) return null;
+        if (world != cameraSnapshotWorldId)
+            return new SavedView(world, savedViewsBefore.TryGetValue(world, out object value) ? value : null);
+
+        // The world the preview began on reopens where the player was at that moment.
+        Type type = SavedViewsField!.FieldType.GetGenericArguments()[1];
+        object point = Activator.CreateInstance(type)!;
+        AccessTools.Field(type, "pos")?.SetValue(point, cameraSnapshotPosition);
+        AccessTools.Field(type, "orthoSize")?.SetValue(point, cameraSnapshotOrthographicSize);
+        return new SavedView(world, point);
+    }
+
+    internal sealed class SavedView
+    {
+        internal SavedView(int world, object? value)
+        {
+            World = world;
+            Value = value;
+        }
+
+        internal int World { get; }
+
+        // Null removes the record, as when the world had none before the preview.
+        internal object? Value { get; }
     }
 
     internal static void ResetRuntimeState()
@@ -179,6 +228,7 @@ internal static class RevealSessionCoordinator
         pendingForcedCameraReset = false;
         cameraSnapshotValid = false;
         cameraSnapshotWorldId = -1;
+        savedViewsBefore = null;
     }
 
     internal static void TryCompletePendingCameraSafetyMigration()
@@ -371,6 +421,13 @@ internal static class RevealSessionCoordinator
         cameraSnapshotOrthographicSize = controller.OrthographicSize;
         cameraSnapshotMaxOrthographicSize = MaxOrthographicSizeRef(controller);
         cameraSnapshotWorldId = ClusterManager.Instance != null ? ClusterManager.Instance.activeWorldId : -1;
+        IDictionary? views = SavedViews();
+        savedViewsBefore = null;
+        if (views != null && views.GetType().IsGenericType)
+        {
+            savedViewsBefore = new Dictionary<int, object>();
+            foreach (DictionaryEntry entry in views) savedViewsBefore[(int)entry.Key] = entry.Value;
+        }
     }
 
     private static void RestoreCameraSnapshot()
@@ -392,7 +449,6 @@ internal static class RevealSessionCoordinator
             SetExactMaxOrthographicSize(controller, cameraSnapshotMaxOrthographicSize);
             if (ClusterManager.Instance != null && ClusterManager.Instance.GetWorld(cameraSnapshotWorldId) != null)
             {
-                NormalizeLeavingZoom(controller);
                 SwitchActiveWorld(cameraSnapshotWorldId);
                 controller.SnapTo(cameraSnapshotPosition, cameraSnapshotOrthographicSize);
             }
@@ -401,6 +457,7 @@ internal static class RevealSessionCoordinator
 
         cameraSnapshotValid = false;
         cameraSnapshotWorldId = -1;
+        savedViewsBefore = null;
     }
 
     // Ends a grid preview where the player navigated: normal camera rules return, the view stays.
@@ -423,15 +480,9 @@ internal static class RevealSessionCoordinator
 
         cameraSnapshotValid = false;
         cameraSnapshotWorldId = -1;
+        savedViewsBefore = null;
     }
 
-    private static void NormalizeLeavingZoom(CameraController controller)
-    {
-        if (cameraSnapshotValid && controller.targetOrthographicSize > cameraSnapshotMaxOrthographicSize)
-        {
-            controller.SnapTo(controller.transform.GetPosition(), cameraSnapshotOrthographicSize);
-        }
-    }
 
     private static RevealSnapshotState? GetState()
     {

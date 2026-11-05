@@ -33,6 +33,10 @@ Check(mod.GetManifestResourceNames().Where(s => s.StartsWith("RevealStarMap.")).
 Check(Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(Path.Combine(repo, "vendor/PLib.dll")))).ToLowerInvariant() ==
     "b0144f909e00044ebd3b5880676ceb3aba756d579ea3a63aebd7a34b0777fda6",
     "Build uses the reviewed PLib binary");
+string shippedText = System.Text.Encoding.UTF8.GetString(File.ReadAllBytes(
+    Path.Combine(repo, "dist", "liyux.RevealStarMap", "RevealStarMap.dll")));
+Check(!shippedText.Contains(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)) &&
+    !shippedText.Contains("ILRepack-"), "Shipped assembly embeds no local path");
 var mergedOptions = mod.GetType("PeterHan.PLib.Options.POptions");
 Check(mergedOptions != null && !mergedOptions.IsPublic && mod.GetReferencedAssemblies().All(a => a.Name != "PLib"),
     "PLib is merged and internal, so another mod's PLib cannot replace it");

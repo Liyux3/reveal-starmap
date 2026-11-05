@@ -7,8 +7,14 @@ namespace RevealStarMap.Patches;
 public static class ClusterManager_SetActiveWorld_Patch
 {
     // Runs before the change is announced, while the leaving world's camera is still current.
-    public static void Prefix(int worldIdx)
+    internal static void Prefix(int worldIdx, out RevealSessionCoordinator.SavedView? __state)
     {
-        RevealSessionCoordinator.BeforeActiveWorldChange(worldIdx);
+        __state = RevealSessionCoordinator.BeforeActiveWorldChange(worldIdx);
+    }
+
+    // Runs after UserNavigation has recorded the leaving world.
+    internal static void Postfix(RevealSessionCoordinator.SavedView? __state)
+    {
+        RevealSessionCoordinator.AfterActiveWorldChange(__state);
     }
 }

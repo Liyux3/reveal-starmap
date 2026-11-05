@@ -10,9 +10,10 @@ if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
   echo "Invalid mod_info.yaml version: $VERSION" >&2
   exit 1
 fi
-# A released version is immutable: only its tagged commit may produce archives with that name.
+# A released version is immutable: only its tagged commit, unmodified, may produce archives with that name.
 if RELEASED="$(git -C "$ROOT_DIR" rev-parse -q --verify "refs/tags/v$VERSION^{commit}" 2>/dev/null)" &&
-  [[ "$RELEASED" != "$(git -C "$ROOT_DIR" rev-parse HEAD)" ]]; then
+  { [[ "$RELEASED" != "$(git -C "$ROOT_DIR" rev-parse HEAD)" ]] ||
+    [[ -n "$(git -C "$ROOT_DIR" status --porcelain -- src translations vendor mod.yaml mod_info.yaml scripts)" ]]; }; then
   echo "v$VERSION is already released from ${RELEASED:0:7}; raise the version in mod_info.yaml." >&2
   exit 1
 fi
@@ -46,15 +47,17 @@ done
 
 # Merge and internalize PLib, as its author recommends. A separate PLib.dll binds by simple name
 # on Mono, so another mod's older copy loaded first could replace the one this build was tested with.
+# Without symbols the merge is byte-reproducible and embeds no local path (ILRepack writes the
+# PDB through a temporary directory and records that path in the assembly).
 MERGED="$BUILD_DIR/merged"
 rm -rf "$MERGED"
 mkdir -p "$MERGED"
 (cd "$ROOT_DIR" && "$DOTNET_BIN" tool restore >/dev/null &&
-  "$DOTNET_BIN" tool run ilrepack /internalize "/lib:$ONI_MANAGED_PATH" "/out:$MERGED/RevealStarMap.dll" \
-    "$BUILD_DIR/RevealStarMap.dll" "$PLIB_DLL" >/dev/null)
+  "$DOTNET_BIN" tool run ilrepack /internalize /ndebug "/lib:$ONI_MANAGED_PATH" \
+    "/out:$MERGED/RevealStarMap.dll" "$BUILD_DIR/RevealStarMap.dll" "$PLIB_DLL" >/dev/null)
 
-cp "$MERGED/RevealStarMap.dll" "$MERGED/RevealStarMap.pdb" "$ROOT_DIR/mod.yaml" \
-  "$ROOT_DIR/mod_info.yaml" "$ROOT_DIR/vendor/PLib.LICENSE.txt" "$PACKAGE/"
+cp "$MERGED/RevealStarMap.dll" "$ROOT_DIR/mod.yaml" "$ROOT_DIR/mod_info.yaml" \
+  "$ROOT_DIR/vendor/PLib.LICENSE.txt" "$PACKAGE/"
 cp "$ROOT_DIR"/translations/*.json "$PACKAGE/translations/"
 (cd "$STAGE" && zip -qrX "RevealStarMap-$VERSION.zip" liyux.RevealStarMap)
 (cd "$PACKAGE" && zip -qrX "$STAGE/RevealStarMap-$VERSION-workshop.zip" .)
