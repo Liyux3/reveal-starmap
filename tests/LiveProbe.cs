@@ -320,6 +320,11 @@ public sealed class Driver : MonoBehaviour
                 // The world selector's own path: fade, SetActiveWorld, then UserNavigation's camera.
                 CameraController.Instance.ActiveWorldStarWipe((int)c["world"]);
                 return "Native world switch requested";
+            case "shot":
+                // Unity writes its own frame at the end of this frame; no system capture permission is needed.
+                string shot = Path.Combine(Driver.Root, Path.GetFileName((string)c["name"]) + ".png");
+                ScreenCapture.CaptureScreenshot(shot, c["scale"] == null ? 1 : (int)c["scale"]);
+                return shot;
             case "world-ui":
                 ClusterMapScreen.Instance.SelectEntity(ClusterManager.Instance.GetWorld((int)c["world"]).GetComponent<ClusterGridEntity>());
                 return "World side screen targeted";

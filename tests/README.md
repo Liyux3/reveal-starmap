@@ -25,9 +25,10 @@ to clear before recording a snapshot. The driver pauses newly loaded campaigns.
 
 Commands exchange JSON via command.json/result.json, with a unique request ID and archived
 responses. Examples: options, option, ui, click, load, snapshot, starmap, canvas, world,
-switch, research, readiness, route, flight, save and quit. `switch` changes world through
+switch, shot, research, readiness, route, flight, save and quit. `switch` changes world through
 the world selector's own star-wipe path; snapshots include `savedViews`, the per-world
-camera zoom that UserNavigation restores when the player returns to a world. Buttons must be selected from current ui output. `route` reports
+camera zoom that UserNavigation restores when the player returns to a world. `shot` saves
+the game's own frame as NAME.png in the evidence root. Buttons must be selected from current ui output. `route` reports
 whether it used a real rocket or a temporary selector fixture; neither implies live flight.
 
 The driver sets runInBackground only in the test process. Quit normally, remove both test
