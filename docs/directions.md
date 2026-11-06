@@ -54,3 +54,30 @@ Each line gives value, cost and fit with the mod's quiet, native style.
 
 Recommended order: ship the current fixes, then 1 and 2 together as 0.5, then 3 or 4
 depending on what players ask for. 5 waits for a request.
+
+## Map export design (in progress, 2026-11-06)
+
+The user asked for candidate 4 now, done elegantly with sharing in mind. The capture reuses
+the game's own timelapse contract rather than a new renderer (Timelapser.cs and
+CameraController.RenderForTimelapser in the U59 source mirror):
+
+- A `WaitForEndOfFrame` coroutine. First frame: read the screen into a texture and show it on
+  `CameraController.timelapseFreezeCamera` through its `FillRenderTargetEffect`, so the player
+  sees no movement; call `DebugHandler.SetTimelapseMode(true, worldId)` (overrides the active
+  world, refreshes zone rendering, hides UI); turn the overlay off; frame the target.
+  Second frame: `RenderForTimelapser(ref rt)` renders the base and overlay cameras with the
+  timelapse culling masks into our own RenderTexture; `ReadPixels`, `EncodeToPNG`; restore
+  camera, overlay, timelapse mode and the freeze camera.
+- Export what the player is looking at: the previewed asteroid (fog lifted by World preview),
+  the active world as seen (fog kept), or the whole canvas during Canvas preview.
+- Size by pixels per cell, chosen so the long side is about 3072 px and clamped to 4 to 16,
+  integer scale only.
+- Shareable composition: the render plus a caption strip drawn with the game's TextMeshPro font
+  through a temporary camera, composited below it: world name, cycle, the seed coordinate from
+  `CustomGameSettings.Instance.GetSettingsCoordinate()`, and a small "Reveal StarMap" credit on a
+  dark ONI-like ground. Save under the ONI user folder `RevealStarMap/exports/` with a readable
+  name, and notify with the path.
+- Trigger: a configurable shortcut (default Shift+F9) beside the F7/F8 ones; later also a
+  control in a preview bar.
+- Acceptance: native session export of a known world; dimensions, no UI in the image, camera,
+  overlay and fog restored, timing; then visual review with the user before release.
