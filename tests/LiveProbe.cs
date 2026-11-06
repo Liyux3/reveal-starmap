@@ -473,7 +473,10 @@ public sealed class Driver : MonoBehaviour
                     bytes[i + 3] = Grid.Visible[cell];
                 }
             File.WriteAllBytes(Path.Combine(Driver.Root, $"dump-{w.id}.bin"), bytes);
-            worlds.Add(new { id = w.id, name = w.GetProperName(), x = o.x, y = o.y, w = s.x, h = s.y, start = w.IsStartWorld });
+            AxialI at = w.GetComponent<ClusterGridEntity>().Location;
+            worlds.Add(new { id = w.id, name = w.GetProperName(), x = o.x, y = o.y, w = s.x, h = s.y, start = w.IsStartWorld,
+                q = at.q, r = at.r, description = Strings.Get(w.worldDescription).String,
+                traits = w.WorldTraitIds?.Select(t => Strings.Get(ProcGen.SettingsCache.GetCachedWorldTrait(t, false)?.name ?? t).String).ToArray() });
         }
         var geysers = UnityEngine.Object.FindObjectsOfType<Geyser>().Select(g =>
         {
@@ -492,7 +495,7 @@ public sealed class Driver : MonoBehaviour
                 prefab = p.PrefabTag.Name, name = p.GetProperName() };
         }).ToList();
         // Unexplored areas keep their worldgen spawns (geysers, POIs) pending until revealed.
-        var pending = ((IEnumerable)AccessTools.Field(typeof(WorldGenSpawner), "spawnables").GetValue(Game.Instance.GetComponent<WorldGenSpawner>()))
+        var pending = ((IEnumerable)AccessTools.Field(typeof(WorldGenSpawner), "spawnables").GetValue(UnityEngine.Object.FindObjectOfType<WorldGenSpawner>()))
             .Cast<object>().Select(o => (TemplateClasses.Prefab)AccessTools.Property(o.GetType(), "spawnInfo").GetValue(o))
             .Where(p => marks.IsMatch(p.id) || p.id.StartsWith("Geyser") || p.id.Contains("Vent") || p.id.Contains("Volcano"))
             .Select(p => (object)new { world = Grid.IsValidCell(Grid.XYToCell(p.location_x, p.location_y)) ? Grid.WorldIdx[Grid.XYToCell(p.location_x, p.location_y)] : -1,
