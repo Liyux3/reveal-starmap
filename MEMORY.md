@@ -64,7 +64,7 @@ Status, 2026-11-05:
   commits and ISteamUGC SetAllowLegacyUpload both return EResultFail (2). Next step is the
   user's decision: Steam Support, a new legacy listing, or GitHub only.
 - Support: Klei emailed 11/06 (livesupport@kleientertainment.com, from liyuxian1358@gmail.com);
-  a Steam Support request is filled in the Pro's Edge and needs the user's emailed code to send.
+  Steam Support ticket HT-875C-93XN-FPD6 submitted 11/06 (replies to liyuxian1358531@icloud.com).
   The Workshop comment reply is posted. If nothing is restored in three to five business days,
   publish a new legacy listing and point the old description at it.
 - Steam web: the user signed in to Steam in the Pro's Edge on 5 November; drive owner pages

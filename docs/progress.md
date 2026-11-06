@@ -543,8 +543,9 @@ the account email before Support receives them.
 
 - Emailed Klei from liyuxian1358@gmail.com at 01:03 (verified in Sent), asking them to have
   Valve restore legacy storage for 3695988693, with the evidence and the GitHub build.
-- Filled the Steam Support request under Steam Community > contact support in the owner's
-  Edge session; sending waits for the user to enter the emailed code.
+- Submitted Steam Support request HT-875C-93XN-FPD6 (Steam Community > contact support) from
+  the owner's Edge session at the user's go-ahead; no email code was asked this time, and the
+  full text was read back. Replies go to the account email liyuxian1358531@icloud.com.
 - Replied once on the Workshop page (verified through the comment endpoint, 4 comments):
   the Workshop install is broken and being fixed with Klei and Steam, 0.4.2 installs from
   GitHub, the options crash is fixed, and Permanent survey is how rockets fly to revealed
