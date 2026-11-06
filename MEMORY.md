@@ -32,6 +32,10 @@ Rollback question, 2026-10-31, verbatim:
 
 > 你为啥要历史版本回退呀？我们不是要更新版本吗？把它都弄到最优雅状态就行了呀。
 
+Public images, 2026-11-06, verbatim:
+
+> 商店记得别放我的基地。
+
 Native acceptance uses additional copies under the project's ignored test directory.
 Never load or save over personal campaign paths. Restore temporary mod preferences and
 the original Continue pointer after the test session.
@@ -76,7 +80,9 @@ Status, 2026-11-05:
 Rules that stay: never publish a modern depot directory; accept a release only when a
 subscriber install is a regular ZIP equal to the release asset; keep the Workshop
 description user-authored with point edits only; never load or save personal campaigns,
-use copies under `artifacts/`; run native tests through `tests/native-session.py`, which
+use copies under `artifacts/`; never show the user's own colony (the campaign.sav copies,
+their exports or screenshots) on the Workshop page, GitHub release, README or any promotion,
+and make public images from a fresh, neutral save; run native tests through `tests/native-session.py`, which
 shares the install with other ONI projects through `mods/.native-validation.lock`.
 Current implementation: [architecture](docs/architecture.md). History: [progress](docs/progress.md).
 
