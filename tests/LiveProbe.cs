@@ -346,6 +346,9 @@ public sealed class Driver : MonoBehaviour
             case "dump":
                 // Cell and landmark data of every asteroid, for designing the information map.
                 return DumpWorlds();
+            case "assets":
+                // The game's own sprites and header type, for designing an export in its visual language.
+                return ExportAssets(c["texts"]?.ToObject<string[]>() ?? new string[0]);
             case "world-ui":
                 ClusterMapScreen.Instance.SelectEntity(ClusterManager.Instance.GetWorld((int)c["world"]).GetComponent<ClusterGridEntity>());
                 return "World side screen targeted";
@@ -360,6 +363,92 @@ public sealed class Driver : MonoBehaviour
                 return "Graceful quit requested";
             default: throw new ArgumentException("Unknown command");
         }
+    }
+
+    private static void SaveSprite(Sprite sprite, string path)
+    {
+        Texture texture = sprite.texture;
+        Rect rect = sprite.textureRect;
+        var rt = RenderTexture.GetTemporary(texture.width, texture.height, 0, RenderTextureFormat.ARGB32);
+        RenderTexture previous = RenderTexture.active;
+        Graphics.Blit(texture, rt);
+        RenderTexture.active = rt;
+        var image = new Texture2D((int)rect.width, (int)rect.height, TextureFormat.ARGB32, false);
+        image.ReadPixels(rect, 0, 0);
+        RenderTexture.active = previous;
+        RenderTexture.ReleaseTemporary(rt);
+        File.WriteAllBytes(path, ImageConversion.EncodeToPNG(image));
+        UnityEngine.Object.Destroy(image);
+    }
+
+    private static object ExportAssets(string[] texts)
+    {
+        string root = Path.Combine(Driver.Root, "assets");
+        Directory.CreateDirectory(root);
+        var saved = new List<object>();
+        var wanted = new System.Text.RegularExpressions.Regex("^(GeyserGeneric_|OilWell|Headquarters|WarpPortal|WarpReceiver|WarpConduit|MassiveHeatSink|GeneShuffler|CryoTank|PropFacilityStatue|GravitasCreatureManipulator)");
+        foreach (KPrefabID prefab in Assets.Prefabs.Where(p => p != null && wanted.IsMatch(p.PrefabTag.Name)))
+        {
+            Sprite? sprite = Def.GetUISprite(prefab.gameObject).first;
+            if (sprite == null) continue;
+            SaveSprite(sprite, Path.Combine(root, prefab.PrefabTag.Name + ".png"));
+            saved.Add(new { id = prefab.PrefabTag.Name, name = prefab.GetProperName() });
+        }
+        foreach (WorldContainer w in ClusterManager.Instance.WorldContainers.Where(w => !w.IsModuleInterior))
+        {
+            Sprite? sprite = w.GetComponent<ClusterGridEntity>()?.GetUISprite();
+            if (sprite != null) SaveSprite(sprite, Path.Combine(root, $"world-{w.id}.png"));
+            saved.Add(new { id = $"world-{w.id}", name = w.GetProperName(),
+                traits = w.WorldTraitIds?.Select(t => Strings.Get(ProcGen.SettingsCache.GetCachedWorldTrait(t, false)?.name ?? t).String).ToArray() });
+        }
+        // Header type: render each requested text with every loaded game font face whose name suggests a display face.
+        var fonts = Resources.FindObjectsOfTypeAll<TMPro.TMP_FontAsset>().Select(f => f.name).Distinct().OrderBy(n => n).ToArray();
+        var faces = Resources.FindObjectsOfTypeAll<TMPro.TMP_FontAsset>().Where(f => f.name.IndexOf("GRAYSTROKE", StringComparison.OrdinalIgnoreCase) >= 0 ||
+            f.name.IndexOf("NotoSans-Regular", StringComparison.OrdinalIgnoreCase) >= 0).GroupBy(f => f.name).Select(g => g.First()).ToList();
+        var holder = new GameObject("ProbeText");
+        holder.transform.position = new Vector3(-200000f, -200000f, 0f);
+        var lens = new GameObject("Camera").AddComponent<Camera>();
+        lens.transform.SetParent(holder.transform, false);
+        lens.orthographic = true; lens.clearFlags = CameraClearFlags.SolidColor; lens.backgroundColor = new Color(0, 0, 0, 0);
+        lens.cullingMask = 1 << 31; lens.enabled = false; lens.nearClipPlane = 1f; lens.farClipPlane = 20f;
+        var label = new GameObject("Label") { layer = 31 }.AddComponent<TMPro.TextMeshPro>();
+        label.transform.SetParent(holder.transform, false);
+        label.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
+        label.alignment = TMPro.TextAlignmentOptions.Center;
+        label.color = Color.white;
+        for (int f = 0; f < faces.Count; f++)
+            for (int i = 0; i < texts.Length; i++)
+            {
+                label.font = faces[f];
+                label.fontSize = 10f;
+                label.text = texts[i];
+                Vector2 size = label.GetPreferredValues(texts[i]);
+                float scale = 96f / Math.Max(0.01f, label.GetPreferredValues("Hg").y);
+                label.fontSize = 10f * scale;
+                size = label.GetPreferredValues(texts[i]);
+                int w = Mathf.CeilToInt(size.x + 24), h = Mathf.CeilToInt(size.y + 24);
+                label.rectTransform.sizeDelta = new Vector2(w, h);
+                label.rectTransform.localPosition = Vector3.zero;
+                label.ForceMeshUpdate();
+                lens.orthographicSize = h / 2f;
+                lens.aspect = (float)w / h;
+                lens.transform.localPosition = new Vector3(0, 0, -10f);
+                var rt = RenderTexture.GetTemporary(w, h, 24, RenderTextureFormat.ARGB32);
+                lens.targetTexture = rt;
+                lens.Render();
+                RenderTexture previous = RenderTexture.active;
+                RenderTexture.active = rt;
+                var image = new Texture2D(w, h, TextureFormat.ARGB32, false);
+                image.ReadPixels(new Rect(0, 0, w, h), 0, 0);
+                RenderTexture.active = previous;
+                lens.targetTexture = null;
+                RenderTexture.ReleaseTemporary(rt);
+                File.WriteAllBytes(Path.Combine(root, $"text-{f}-{i}.png"), ImageConversion.EncodeToPNG(image));
+                UnityEngine.Object.Destroy(image);
+            }
+        UnityEngine.Object.DestroyImmediate(holder);
+        File.WriteAllText(Path.Combine(root, "assets.json"), JsonConvert.SerializeObject(new { saved, fonts, faces = faces.Select(f => f.name), texts }, Formatting.Indented));
+        return new { sprites = saved.Count, fonts = fonts.Length, faces = faces.Select(f => f.name) };
     }
 
     private static string Hex(Color color) => "#" + ColorUtility.ToHtmlStringRGB(color);

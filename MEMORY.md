@@ -36,6 +36,12 @@ Public images, 2026-11-06, verbatim:
 
 > 商店记得别放我的基地。
 
+Map export look, 2026-11-06, verbatim (after the first render export):
+
+> 你这导出的太丑了，和截图没区别，那没有任何意义
+
+> 要很有游戏感
+
 Native acceptance uses additional copies under the project's ignored test directory.
 Never load or save over personal campaign paths. Restore temporary mod preferences and
 the original Continue pointer after the test session.
