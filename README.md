@@ -31,12 +31,14 @@ For details, see [behavior and data](docs/architecture.md) and
 
 ## Release Status
 
-Latest package: [**0.4.1.0**](https://github.com/Liyux3/reveal-starmap/releases/tag/v0.4.1.0).
+Latest package: [**0.4.2.0**](https://github.com/Liyux3/reveal-starmap/releases/tag/v0.4.2.0).
 Workshop installation is currently affected by an upload-format issue. Use the
-`RevealStarMap-0.4.1.0.zip` download for manual installation while the original
+`RevealStarMap-0.4.2.0.zip` download for manual installation while the original
 [Workshop listing](https://steamcommunity.com/sharedfiles/filedetails/?id=3695988693)
-awaits storage recovery. Existing subscriptions stay attached to that listing.
+is restored. Existing subscriptions stay attached to that listing.
 
+0.4.2 passed 50 managed checks and native acceptance of world switches during previews,
+saved-view restoration, camera bounds and the merged PLib options dialog.
 0.4.1 passed 48 managed checks and native acceptance on macOS with ONI U59-744825:
 actual Shift+F7/F8 input, planet buttons, camera restoration, save/reload, permanent
 rocket-route analysis and a real rocket flight, using the original mod profile.

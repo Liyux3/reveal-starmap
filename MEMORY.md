@@ -54,10 +54,10 @@ Permanent survey for rocket routes. Positioning and candidate features: [directi
 
 Status, 2026-11-05:
 
-- Code: `0.4.2.0` on main, 50 managed checks and native acceptance passed
-  (`artifacts/e2e-20261105/acceptance.json`); not yet tagged or released.
-- GitHub: `v0.4.1.0` is the latest release. Pushes and releases wait for
-  `gh auth login`; the token is invalid on both the Pro and the Air.
+- Released `v0.4.2.0` on GitHub (lightweight tag at 1d4254c); assets match the natively
+  accepted DLL `55e05a40...` (`artifacts/e2e-20261105/acceptance.json`).
+- GitHub credentials work only in the Pro's GUI session (keychain): run git and gh there
+  through Codex; over ssh, and on the Air, they fail.
 - Workshop `3695988693`: still the 26 October modern depot (empty filename, size 0), so it
   cannot be subscribed or installed. Legacy content commits to a depot item fail with
   EResultFail (2), so first revert to the 30 July changelog entry (timestamp 1785435334,
