@@ -500,3 +500,33 @@ Receipt: `artifacts/e2e-20261105/acceptance.json`.
 
 Directions are in [directions.md](directions.md); base game support is the largest
 audience gain and is the user's product decision.
+
+## 2026-11-05: Release 0.4.2 and the Workshop Storage Wall
+
+GitHub credentials work in the Pro's desktop session, where the keychain is unlocked; over
+ssh they look invalid. Through Codex there, main was pushed and `v0.4.2.0` released at
+1d4254c. Both assets match the dist files and GitHub's digests, and the DLL equals the
+natively accepted `55e05a40...`. The repository description, homepage and topics now
+state the position.
+
+The user signed in to Steam in the Pro's Edge. The revert to the 30 July entry was located
+by its call, `RevertWorkshopFile(3695988693, 1785435334, ...)`, confirmed in the dialog
+("7 月 30 日 上午 11:15") and executed. One earlier click used an inspect ref that OpenCLI
+resolved to a store link; it only navigated, and readback showed no change.
+
+After the revert, `hcontent_file` is the legacy handle 14374718941853451483, but filename
+and size stay empty and Steam treats the handle as a depot manifest: the client logs
+"Failed downloading 1 manifests (Manifest unavailable)" and a download as the game installs
+nothing. The legacy RemoteStorage commit of the 0.4.2 ZIP (with the shared ONI lock, now
+taken by `publish-workshop.sh` itself) returned EResultFail (2), and so did one ISteamUGC
+`SetAllowLegacyUpload` upload of the file (no bytes uploaded). The 26 October attempts of
+the same calls had failed too. ONI's `KMod.Steam.MakeMod` requires
+`File.Exists(GetItemInstallInfo)`, which a modern item never satisfies; Steam keeps a
+converted item's old file as `<handle>_legacy.bin`, but only legacy items return that path.
+
+Conclusion: once converted, the item cannot return to legacy storage from any client path.
+The revert also turned a downloadable but unusable item into an undownloadable one; both
+are uninstallable in ONI. Remaining choices are the user's: Steam Support restoring legacy
+storage for 3695988693, a new legacy listing with a pointer from the old one, or GitHub only.
+Evidence: `artifacts/recovery-20261105/` (revert-web.json, workshop-probe.log,
+ugc-legacy.json, steam-workshop_log.txt) and `artifacts/workshop/0.4.2.0/publish.json`.

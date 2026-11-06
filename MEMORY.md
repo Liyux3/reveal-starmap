@@ -58,18 +58,16 @@ Status, 2026-11-05:
   accepted DLL `55e05a40...` (`artifacts/e2e-20261105/acceptance.json`).
 - GitHub credentials work only in the Pro's GUI session (keychain): run git and gh there
   through Codex; over ssh, and on the Air, they fail.
-- Workshop `3695988693`: still the 26 October modern depot (empty filename, size 0), so it
-  cannot be subscribed or installed. Legacy content commits to a depot item fail with
-  EResultFail (2), so first revert to the 30 July changelog entry (timestamp 1785435334,
-  legacy ZIP handle 14374718941853451483) from a logged-in Steam web session, then run
-  `scripts/publish-workshop.sh`. The user asked on 31 October why roll back at all: the
-  rollback is only the means, the goal is the newest version through the official path.
+- Workshop `3695988693`: converted to modern storage on 26 October and, as of 5 November,
+  provably stuck there. The web revert to 30 July set its pointer to the legacy handle
+  14374718941853451483, which Steam now fails to download as a manifest. Legacy RemoteStorage
+  commits and ISteamUGC SetAllowLegacyUpload both return EResultFail (2). Next step is the
+  user's decision: Steam Support, a new legacy listing, or GitHub only.
 - After the fix: reply once to the three comments, apply the point-edited description and
   publish 0.4.2. Drafts are in `artifacts/workshop/drafts/`.
-- Steam web login: Edge on the Pro is signed out; the signed-in Steam client is not
-  reachable (Codex lacks Screen Recording; Steam refuses AX web trees). Options offered
-  to the user: QR sign-in in the Air's browser pane, Screen Recording for Codex, or a
-  temporary Steam CEF debugging port. Never type passwords or codes or read cookies.
+- Steam web: the user signed in to Steam in the Pro's Edge on 5 November; drive owner pages
+  with `web_browse` CSS selectors (inspect refs are not OpenCLI click refs). Never type
+  passwords or codes or read cookies.
 
 Rules that stay: never publish a modern depot directory; accept a release only when a
 subscriber install is a regular ZIP equal to the release asset; keep the Workshop
