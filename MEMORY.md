@@ -63,8 +63,10 @@ Status, 2026-11-05:
   14374718941853451483, which Steam now fails to download as a manifest. Legacy RemoteStorage
   commits and ISteamUGC SetAllowLegacyUpload both return EResultFail (2). Next step is the
   user's decision: Steam Support, a new legacy listing, or GitHub only.
-- After the fix: reply once to the three comments, apply the point-edited description and
-  publish 0.4.2. Drafts are in `artifacts/workshop/drafts/`.
+- Support: Klei emailed 11/06 (livesupport@kleientertainment.com, from liyuxian1358@gmail.com);
+  a Steam Support request is filled in the Pro's Edge and needs the user's emailed code to send.
+  The Workshop comment reply is posted. If nothing is restored in three to five business days,
+  publish a new legacy listing and point the old description at it.
 - Steam web: the user signed in to Steam in the Pro's Edge on 5 November; drive owner pages
   with `web_browse` CSS selectors (inspect refs are not OpenCLI click refs). Never type
   passwords or codes or read cookies.

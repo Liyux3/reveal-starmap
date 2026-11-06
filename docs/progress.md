@@ -530,3 +530,31 @@ are uninstallable in ONI. Remaining choices are the user's: Steam Support restor
 storage for 3695988693, a new legacy listing with a pointer from the old one, or GitHub only.
 Evidence: `artifacts/recovery-20261105/` (revert-web.json, workshop-probe.log,
 ugc-legacy.json, steam-workshop_log.txt) and `artifacts/workshop/0.4.2.0/publish.json`.
+
+## 2026-11-06: Support Requests and Player Reply
+
+The user asked for a full assessment and, if the item could not be repaired, an email.
+Steamworks documents the ISteamRemoteStorage to ISteamUGC update as one-way, which matches
+every attempt. The assessment (`artifacts/workshop/drafts/assessment-20261106.md`) names the
+26 October unattended ISteamUGC publish as the root cause and the 6 November revert as the
+added download failure. Klei's listed support address is livesupport@kleientertainment.com;
+Steam Support takes only owner tickets at help.steampowered.com, confirmed by a code sent to
+the account email before Support receives them.
+
+- Emailed Klei from liyuxian1358@gmail.com at 01:03 (verified in Sent), asking them to have
+  Valve restore legacy storage for 3695988693, with the evidence and the GitHub build.
+- Filled the Steam Support request under Steam Community > contact support in the owner's
+  Edge session; sending waits for the user to enter the emailed code.
+- Replied once on the Workshop page (verified through the comment endpoint, 4 comments):
+  the Workshop install is broken and being fixed with Klei and Steam, 0.4.2 installs from
+  GitHub, the options crash is fixed, and Permanent survey is how rockets fly to revealed
+  cells. The description stays as the user wrote it.
+
+Fallback: if neither Klei nor Valve restores legacy storage within three to five business
+days, publish a new legacy listing through the verified RemoteStorage path and point the old
+description at it with one line in the user's voice.
+
+Web automation notes: OpenCLI clicks accept CSS or the bracketed refs from DOM snapshots
+returned by actions, not the `[@N]` refs of `inspect`; a misread ref navigated once to the
+store wishlist. Clicks in background tabs can be dropped until an element is focused, so
+every public write here was confirmed by an independent readback before moving on.
