@@ -5,7 +5,11 @@ then put it back.
 
 - **Shift + F7** previews the starmap. Press again to return.
 - **Shift + F8** previews the canvas containing all worlds. Press again to return.
+- **Shift + F9** saves a framed PNG of what you are viewing: the previewed asteroid, the
+  whole canvas, or the current asteroid as explored, captioned with its name, cycle and seed.
 - Select an asteroid and use **Preview map** or **End preview** in its details.
+
+Exports go to `RevealStarMap/exports` in the game's data folder, next to `save_files`.
 
 Previews change only what is drawn. Exploration, research, telescope rewards and
 achievements stay as they were, and hidden areas do not start simulating, unlike debug

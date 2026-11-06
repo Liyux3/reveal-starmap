@@ -4,5 +4,5 @@ internal sealed class RevealModifierOptionsEntry : EnumDropdownOptionsEntry<Reve
 {
     public RevealModifierOptionsEntry(string field)
         : base(field, RevealText.Get("setting." + field), RevealText.Get("hint." + field),
-            RevealText.Category(field == "CanvasModifier" ? "canvas" : "map"), BuildEnumChoices()) { }
+            RevealText.Category(field.StartsWith("Canvas") ? "canvas" : field.StartsWith("Export") ? "export" : "map"), BuildEnumChoices()) { }
 }

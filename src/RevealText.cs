@@ -25,7 +25,7 @@ internal static class RevealText
     internal static string Category(string name)
     {
         // PLib sorts category keys before resolving them through the native string table.
-        string suffix = name == "map" ? "A_STARMAP" : name == "canvas" ? "B_CANVAS" : "C_PREFERENCES";
+        string suffix = name == "map" ? "A_STARMAP" : name == "canvas" ? "B_CANVAS" : name == "export" ? "C_EXPORT" : "D_PREFERENCES";
         string key = "STRINGS.REVEALSTARMAP.CATEGORIES." + suffix;
         Strings.Add(key, Get("category." + name));
         return key;

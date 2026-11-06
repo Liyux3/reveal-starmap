@@ -193,6 +193,27 @@ string globalJson = JsonConvert.SerializeObject(oldDraft);
 Check(!globalJson.Contains("SurveyConfirmation") && !globalJson.Contains("ShowNotification"),
     "Settings serialize only the current global preferences");
 
+var upgraded = JsonConvert.DeserializeObject<RevealStarMapSettings>("{\"Modifier\":1,\"FunctionKey\":9}")!;
+var apply = manager.GetMethod("Apply", BindingFlags.NonPublic | BindingFlags.Static)!;
+var exportConflict = manager.GetProperty("ExportHotkeyConflict", BindingFlags.NonPublic | BindingFlags.Static)!;
+apply.Invoke(null, new object[] { upgraded });
+bool pausedOnClash = (bool)exportConflict.GetValue(null)!;
+apply.Invoke(null, new object[] { new RevealStarMapSettings() });
+Check(upgraded.ExportModifier == RevealModifier.Shift && upgraded.ExportFunctionKey == RevealFunctionKey.F9 && pausedOnClash &&
+    !(bool)exportConflict.GetValue(null)!, "Older configs gain Shift + F9 export, which pauses only when it clashes with an earlier shortcut");
+var exportType = mod.GetType("RevealStarMap.Runtime.MapExport", true)!;
+object Layout(int w, int h, int max) => exportType.GetMethod("ComputeLayout", BindingFlags.NonPublic | BindingFlags.Static)!.Invoke(null, new object[] { w, h, max })!;
+int Px(object layout, string name) => (int)layout.GetType().GetProperty(name, BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(layout)!;
+var start = Layout(256, 384, 16384);
+var moonlet = Layout(64, 96, 16384);
+var canvasLayout = Layout(4000, 3000, 8192);
+Check(Px(start, "PixelsPerCell") == 8 && Px(start, "MapHeight") == 3072 && Px(moonlet, "PixelsPerCell") == 16 &&
+    Px(canvasLayout, "PixelsPerCell") == 1 && Px(canvasLayout, "Width") <= 8192 && Px(start, "Height") == Px(start, "Margin") * 4 + 3072,
+    "Map export renders whole cells near a 3072 px long side within the texture limit");
+var fileName = (string)exportType.GetMethod("FileName", BindingFlags.NonPublic | BindingFlags.Static)!.Invoke(null, new object[] {
+    "Fe/Colony", "Terra:", 12, new Func<string, bool>(n => n == "Fe Colony - Terra - Cycle 12.png") })!;
+Check(fileName == "Fe Colony - Terra - Cycle 12 (2).png", "Export file names are readable, safe and never overwrite an earlier export");
+
 // Exercise the game's schema migration when the unused per-save booleans disappear.
 var oldTemplate = new KSerialization.SerializationTemplate(typeof(LegacyPreferences));
 var newTemplate = new KSerialization.SerializationTemplate(typeof(CurrentPreviewState));
@@ -256,9 +277,9 @@ var category = textType.GetMethod("Category", BindingFlags.NonPublic | BindingFl
 foreach (var preference in new[] { UiLanguage.English, UiLanguage.SimplifiedChinese, UiLanguage.TraditionalChinese })
 {
     new RevealStarMapSettings { Language = preference }.OnOptionsChanged();
-    var keys = new[] { "map", "canvas", "preferences" }.Select(name => (string)category.Invoke(null, new object[] { name })!).ToArray();
+    var keys = new[] { "map", "canvas", "export", "preferences" }.Select(name => (string)category.Invoke(null, new object[] { name })!).ToArray();
     Check(keys.SequenceEqual(keys.OrderBy(k => k)) && keys.Select(k => Strings.Get(k).String).All(s => !s.StartsWith("STRINGS.")),
-        preference + " options retain Starmap, Canvas, Preferences order with native labels");
+        preference + " options keep Starmap, Canvas, Map export, Preferences order with native labels");
 }
 
 Console.WriteLine($"{checks} managed integration checks passed. Unity rendering, dialogs and live rocket flight require in-game testing.");

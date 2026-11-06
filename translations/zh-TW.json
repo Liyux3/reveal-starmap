@@ -1,6 +1,7 @@
 {
   "category.map": "星圖",
   "category.canvas": "畫布",
+  "category.export": "匯出地圖",
   "category.preferences": "偏好設定",
   "setting.StarMapAction": "快捷鍵行為",
   "hint.StarMapAction": "適用於所有存檔。預覽可以恢復；永久分析會讓此快捷鍵直接分析目前星圖，不再彈窗詢問。它會解鎖航路，跳過望遠鏡工作及資料磁碟獎勵。燃料、射程和著陸規則仍然生效，除錯與沙盒標記維持原狀。需要復原分析時，請載入先前的存檔。",
@@ -12,6 +13,10 @@
   "hint.CanvasModifier": "與畫布按鍵配合使用。畫布是包含所有世界的完整地圖。",
   "hint.FunctionKey": "執行所選星圖行為。預覽開啟時再次按下即可結束。",
   "hint.CanvasFunctionKey": "預覽包含所有世界的畫布。再次按下可返回先前的視角。",
+  "setting.ExportModifier": "快捷鍵修飾鍵",
+  "setting.ExportFunctionKey": "快捷鍵按鍵",
+  "hint.ExportModifier": "與匯出按鍵一起使用的修飾鍵。",
+  "hint.ExportFunctionKey": "把目前看到的畫面儲存為 PNG：正在預覽的小行星，畫布預覽時的整張畫布，或依探索進度顯示的目前小行星。檔案儲存在存檔旁的 RevealStarMap/exports 資料夾。",
   "setting.Language": "語言",
   "hint.Language": "僅用於此模組。儲存後重新開啟設定即可更新語言。其他語言使用英文。",
   "setting.Feedback": "操作提示",
@@ -43,5 +48,11 @@
   "status.survey.done": "已分析 {0} 個星圖格子，航路使用實際分析結果。",
   "status.survey.empty": "目前星圖已全部分析。",
   "error.callback": "分析已套用，但某個模組更新狀態失敗。請檢查 Player.log 後再繼續；需要回復時請載入先前的存檔。",
-  "error.conflict": "兩項操作都使用 {0}。請在模組選項中設定不同快捷鍵；畫布快捷鍵暫時停用。"
+  "error.conflict": "兩項操作都使用 {0}。請在模組選項中設定不同快捷鍵；畫布快捷鍵暫時停用。",
+  "status.export.done": "地圖已儲存到 {0}",
+  "export.cycle": "第 {0} 週期",
+  "export.canvas": "全部星球",
+  "export.empty": "這個世界還沒有任何探索區域。先預覽它，再匯出地形。",
+  "error.export": "地圖匯出失敗：{0}",
+  "error.export.conflict": "匯出快捷鍵 {0} 已被其他操作佔用。請在模組選項中換一個，在此之前匯出暫停。"
 }

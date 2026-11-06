@@ -559,3 +559,27 @@ Web automation notes: OpenCLI clicks accept CSS or the bracketed refs from DOM s
 returned by actions, not the `[@N]` refs of `inspect`; a misread ref navigated once to the
 store wishlist. Clicks in background tabs can be dropped until an element is focused, so
 every public write here was confirmed by an independent readback before moving on.
+
+## 2026-11-06: Map Export (0.5.0 candidate)
+
+The user asked for map export done elegantly, with sharing in mind. Shift + F9 now saves a
+framed PNG of what the player is looking at, built on the game's own timelapse capture
+(design and numbers in [architecture](architecture.md#map-export)). Version raised to
+0.5.0.0; 53 managed checks pass (new: config upgrade and shortcut clash, layout, file names).
+
+Native acceptance on campaign.sav copies (`artifacts/e2e-20261106`, `-b`, `-c`):
+
+- Final run `-c`: the active rocket interior "03" (608x704, 457 ms), the previewed asteroid
+  混沌星 (2220x2792 at 16 px per cell, 824 ms) and the whole 1114x178 canvas (3576x1002 at
+  3 px per cell, 539 ms). Fog, visible cells, analysis, debug and sandbox flags were identical
+  across the run; after each export the camera returned to its own view (rocket view at zoom
+  8, preview zoom 84.15 in World preview), not the export frame. Profile restored afterwards.
+- The first run's capture 4 s after loading was black: the driver called the export during
+  the load's world fade, which the real shortcut never does. Export now applies the same
+  readiness as the shortcuts, and an unexplored active world gets a message instead of a
+  black image.
+- On the narrow rocket image the credit crowded the seed coordinate; it moved to the title row.
+
+Exports from test runs were moved out of the game folder into each evidence root. The images
+were sent to the user for review; release waits for their verdict on the look. Workshop stays
+untouched until its storage is restored.

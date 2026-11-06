@@ -25,11 +25,11 @@ to clear before recording a snapshot. The driver pauses newly loaded campaigns.
 
 Commands exchange JSON via command.json/result.json, with a unique request ID and archived
 responses. Examples: options, option, ui, click, load, snapshot, starmap, canvas, world,
-switch, shot, perf, research, readiness, route, flight, save and quit. `switch` changes world through
+switch, shot, export, perf, research, readiness, route, flight, save and quit. `switch` changes world through
 the world selector's own star-wipe path; snapshots include `savedViews`, the per-world
 camera zoom that UserNavigation restores when the player returns to a world. `shot` saves
 the game's own frame as NAME.png in the evidence root; `perf` reports mean, p95 and max
-frame time over the last 240 frames. Buttons must be selected from current ui output. `route` reports
+frame time over the last 240 frames. `export` calls the Shift + F9 entry point and returns the active world and its explored cell count; the PNG lands in the game's `RevealStarMap/exports` folder, so move test exports into the evidence root afterwards. Buttons must be selected from current ui output. `route` reports
 whether it used a real rocket or a temporary selector fixture; neither implies live flight.
 
 The driver sets runInBackground only in the test process. Quit normally, remove both test

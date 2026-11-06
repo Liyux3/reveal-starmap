@@ -33,6 +33,32 @@ Legacy axial coordinates restore in native `(R, Q)` order; snapshot validation r
 missing lists and overflowed dimensions. New previews do not capture or restore exploration progress, preserving research earned
 while a preview is active. Camera bounds apply to the active world or full canvas.
 
+## Map Export
+
+`MapExport` saves what the player is looking at as one framed PNG: the previewed asteroid
+during World preview, the whole canvas during Canvas preview, otherwise the active world
+with its real fog (rocket interiors included). It reuses the game's timelapse contract
+instead of a renderer of its own. At the end of one frame it freezes the screen on
+`timelapseFreezeCamera`, enters `DebugHandler.SetTimelapseMode` for the target world (hides
+UI, refreshes zone rendering), turns the overlay off and snaps the camera wide enough that
+tile meshes build for the whole target. At the end of the next frame it sets the exact
+frame and calls `CameraController.RenderForTimelapser` into its own RenderTexture, then
+restores camera, overlay, timelapse mode and freeze camera in a `finally`. Preview zoom
+limits pause while capturing. Readiness matches the shortcuts (no capture during a world
+fade or another timelapse), and an active world with nothing explored gets a message
+instead of a black image.
+
+Size: whole pixels per cell, chosen so the long side lands near 3072 px (16 at most, at
+least 1), within the GPU texture limit; a 128x153 asteroid exports at 16 px per cell
+(2220x2792), the 1114x178 test canvas at 3 (3576x1002). The caption is drawn with the
+game's TextMeshPro font by a temporary camera far from the scene on layer 31, one unit per
+pixel: world name and the mod credit on one row, colony, cycle and the seed coordinate
+(`CustomGameSettings.GetSettingsCoordinate`) below, on a dark ground with margins of 3.5%
+of the long side. Files go to `Util.RootFolder()/RevealStarMap/exports/` as
+`Colony - World - Cycle N.png`, never overwriting, and the path is always shown since the
+export is an explicit action. The shortcut defaults to Shift + F9 and pauses with a message
+while it equals the starmap or canvas shortcut.
+
 ## Permanent Survey
 
 `RevealStarMapSettings.StarMapAction` defaults to TemporaryPreview. All preferences live in

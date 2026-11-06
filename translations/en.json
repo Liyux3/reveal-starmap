@@ -1,6 +1,7 @@
 {
   "category.map": "Starmap",
   "category.canvas": "Canvas",
+  "category.export": "Map export",
   "category.preferences": "Preferences",
   "setting.StarMapAction": "Action",
   "hint.StarMapAction": "Applies across all saves. Preview is reversible. Permanent survey makes this shortcut analyze the current starmap immediately, without another prompt. It opens rocket routes and skips telescope work and Data Bank rewards. Fuel, range and landing rules still apply. Debug and sandbox flags are preserved. To undo a survey, load an earlier save.",
@@ -12,6 +13,10 @@
   "hint.CanvasModifier": "Use this modifier together with the canvas key. The canvas is the shared map containing all worlds.",
   "hint.FunctionKey": "Runs the selected starmap action. Press again to end an active preview.",
   "hint.CanvasFunctionKey": "Preview the shared map containing all worlds. Press again to return to your previous view.",
+  "setting.ExportModifier": "Shortcut modifier",
+  "setting.ExportFunctionKey": "Shortcut key",
+  "hint.ExportModifier": "Use this modifier together with the export key.",
+  "hint.ExportFunctionKey": "Saves a PNG of what you are viewing: the previewed asteroid, the whole canvas during canvas preview, or the current asteroid as explored. Files go to the RevealStarMap/exports folder beside your saves.",
   "setting.Language": "Language",
   "hint.Language": "Applies to this mod. Save and reopen options to refresh their language. Other languages fall back to English.",
   "setting.Feedback": "Action notifications",
@@ -43,5 +48,11 @@
   "status.survey.done": "Analyzed {0} starmap cells. Navigation uses the saved analysis.",
   "status.survey.empty": "The current starmap is fully analyzed.",
   "error.callback": "Analysis was applied, but a mod could not refresh its state. Check Player.log before continuing. Load the earlier save to undo.",
-  "error.conflict": "Both actions use {0}. Choose different shortcuts in Mod Options. The canvas shortcut is paused until then."
+  "error.conflict": "Both actions use {0}. Choose different shortcuts in Mod Options. The canvas shortcut is paused until then.",
+  "status.export.done": "Map saved to {0}",
+  "export.cycle": "Cycle {0}",
+  "export.canvas": "All worlds",
+  "export.empty": "Nothing on this world has been explored yet. Preview it first to export its terrain.",
+  "error.export": "The map could not be exported: {0}",
+  "error.export.conflict": "The export shortcut {0} is already used by another action. Choose a different one in Mod Options. Export is paused until then."
 }

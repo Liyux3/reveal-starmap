@@ -36,7 +36,7 @@ for path in "$ROOT_DIR"/translations/*.json; do
   RESOURCES+=("-resource:$path,RevealStarMap.$(basename "$path")")
 done
 REFERENCES=()
-for dll in mscorlib System System.Core netstandard Assembly-CSharp Assembly-CSharp-firstpass 0Harmony Newtonsoft.Json UnityEngine UnityEngine.CoreModule UnityEngine.InputLegacyModule UnityEngine.UI Unity.TextMeshPro; do
+for dll in mscorlib System System.Core netstandard Assembly-CSharp Assembly-CSharp-firstpass 0Harmony Newtonsoft.Json UnityEngine UnityEngine.CoreModule UnityEngine.InputLegacyModule UnityEngine.ImageConversionModule UnityEngine.UI Unity.TextMeshPro; do
   REFERENCES+=("-r:$ONI_MANAGED_PATH/$dll.dll")
 done
 

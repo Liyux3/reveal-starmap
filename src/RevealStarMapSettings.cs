@@ -68,6 +68,14 @@ public sealed class RevealStarMapSettings : IOptions
     [JsonProperty]
     public RevealFunctionKey CanvasFunctionKey { get; set; } = RevealFunctionKey.F8;
 
+    [DynamicOption(typeof(RevealModifierOptionsEntry))]
+    [JsonProperty]
+    public RevealModifier ExportModifier { get; set; } = RevealModifier.Shift;
+
+    [DynamicOption(typeof(RevealFunctionKeyOptionsEntry))]
+    [JsonProperty]
+    public RevealFunctionKey ExportFunctionKey { get; set; } = RevealFunctionKey.F9;
+
     [DynamicOption(typeof(LanguageOptionsEntry))]
     [JsonProperty]
     public UiLanguage Language { get; set; } = UiLanguage.Automatic;
@@ -93,6 +101,8 @@ public sealed class RevealStarMapSettings : IOptions
         if (!Enum.IsDefined(typeof(RevealModifier), CanvasModifier)) CanvasModifier = RevealModifier.Shift;
         if (!Enum.IsDefined(typeof(RevealFunctionKey), FunctionKey)) FunctionKey = RevealFunctionKey.F7;
         if (!Enum.IsDefined(typeof(RevealFunctionKey), CanvasFunctionKey)) CanvasFunctionKey = RevealFunctionKey.F8;
+        if (!Enum.IsDefined(typeof(RevealModifier), ExportModifier)) ExportModifier = RevealModifier.Shift;
+        if (!Enum.IsDefined(typeof(RevealFunctionKey), ExportFunctionKey)) ExportFunctionKey = RevealFunctionKey.F9;
     }
 }
 
@@ -108,6 +118,11 @@ internal static class RevealStarMapSettingsManager
 
     internal static bool HotkeysConflict =>
         current.Modifier == current.CanvasModifier && current.FunctionKey == current.CanvasFunctionKey;
+
+    // Earlier actions keep their shortcut; export pauses while it shares one with either.
+    internal static bool ExportHotkeyConflict =>
+        (current.ExportModifier == current.Modifier && current.ExportFunctionKey == current.FunctionKey) ||
+        (current.ExportModifier == current.CanvasModifier && current.ExportFunctionKey == current.CanvasFunctionKey);
 
     internal static void Apply(RevealStarMapSettings settings)
     {

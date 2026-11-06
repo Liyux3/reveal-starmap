@@ -337,6 +337,12 @@ public sealed class Driver : MonoBehaviour
                 string shot = Path.Combine(Driver.Root, Path.GetFileName((string)c["name"]) + ".png");
                 ScreenCapture.CaptureScreenshot(shot, c["scale"] == null ? 1 : (int)c["scale"]);
                 return shot;
+            case "export":
+                // The shortcut's own entry point; the PNG path and timing appear in Player.log.
+                Call("MapExport", "Trigger", Game.Instance);
+                var exported = ClusterManager.Instance.activeWorld;
+                return new { activeWorld = exported.id, name = exported.GetProperName(),
+                    visibleCells = Enumerable.Range(0, Grid.CellCount).Count(c => Grid.WorldIdx[c] == exported.id && Grid.Visible[c] > 0) };
             case "world-ui":
                 ClusterMapScreen.Instance.SelectEntity(ClusterManager.Instance.GetWorld((int)c["world"]).GetComponent<ClusterGridEntity>());
                 return "World side screen targeted";

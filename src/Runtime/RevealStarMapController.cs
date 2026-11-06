@@ -7,6 +7,7 @@ internal sealed class RevealStarMapController : KMonoBehaviour
     private bool initialized;
     private int settingsRevision = -1;
     private string? reportedConflict;
+    private string? reportedExportConflict;
 
     protected override void OnSpawn()
     {
@@ -41,6 +42,12 @@ internal sealed class RevealStarMapController : KMonoBehaviour
             if (conflict != null && conflict != reportedConflict)
                 RevealSessionCoordinator.Warn("error.conflict", conflict);
             reportedConflict = conflict;
+            string? exportConflict = RevealStarMapSettingsManager.ExportHotkeyConflict
+                ? RevealInput.FormatHotkey(RevealStarMapSettingsManager.Current.ExportModifier, RevealStarMapSettingsManager.Current.ExportFunctionKey)
+                : null;
+            if (exportConflict != null && exportConflict != reportedExportConflict)
+                RevealSessionCoordinator.Warn("error.export.conflict", exportConflict);
+            reportedExportConflict = exportConflict;
         }
 
         if (!RevealInput.CanProcessHotkeys())
@@ -60,6 +67,13 @@ internal sealed class RevealStarMapController : KMonoBehaviour
             RevealInput.HotkeyPressed(settings.CanvasModifier, settings.CanvasFunctionKey))
         {
             GridRevealRuntime.TriggerCanvasHotkeyAction();
+            return;
+        }
+
+        if (!RevealStarMapSettingsManager.ExportHotkeyConflict &&
+            RevealInput.HotkeyPressed(settings.ExportModifier, settings.ExportFunctionKey))
+        {
+            MapExport.Trigger(this);
         }
     }
 
