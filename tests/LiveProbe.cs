@@ -343,6 +343,9 @@ public sealed class Driver : MonoBehaviour
                 var exported = ClusterManager.Instance.activeWorld;
                 return new { activeWorld = exported.id, name = exported.GetProperName(),
                     visibleCells = Enumerable.Range(0, Grid.CellCount).Count(c => Grid.WorldIdx[c] == exported.id && Grid.Visible[c] > 0) };
+            case "dump":
+                // Cell and landmark data of every asteroid, for designing the information map.
+                return DumpWorlds();
             case "world-ui":
                 ClusterMapScreen.Instance.SelectEntity(ClusterManager.Instance.GetWorld((int)c["world"]).GetComponent<ClusterGridEntity>());
                 return "World side screen targeted";
@@ -357,6 +360,56 @@ public sealed class Driver : MonoBehaviour
                 return "Graceful quit requested";
             default: throw new ArgumentException("Unknown command");
         }
+    }
+
+    private static string Hex(Color color) => "#" + ColorUtility.ToHtmlStringRGB(color);
+
+    private static object DumpWorlds()
+    {
+        var zones = World.Instance.zoneRenderData;
+        var worlds = new List<object>();
+        foreach (WorldContainer w in ClusterManager.Instance.WorldContainers)
+        {
+            if (w.IsModuleInterior) continue;
+            Vector2I o = w.WorldOffset, s = w.WorldSize;
+            var bytes = new byte[s.x * s.y * 4];
+            for (int y = 0; y < s.y; y++)
+                for (int x = 0; x < s.x; x++)
+                {
+                    int cell = Grid.XYToCell(o.x + x, o.y + y), i = (y * s.x + x) * 4;
+                    ushort e = Grid.ElementIdx[cell];
+                    bytes[i] = (byte)(e & 255);
+                    bytes[i + 1] = (byte)(e >> 8);
+                    bytes[i + 2] = (byte)zones.GetSubWorldZoneType(cell);
+                    bytes[i + 3] = Grid.Visible[cell];
+                }
+            File.WriteAllBytes(Path.Combine(Driver.Root, $"dump-{w.id}.bin"), bytes);
+            worlds.Add(new { id = w.id, name = w.GetProperName(), x = o.x, y = o.y, w = s.x, h = s.y, start = w.IsStartWorld });
+        }
+        var geysers = UnityEngine.Object.FindObjectsOfType<Geyser>().Select(g =>
+        {
+            int cell = Grid.PosToCell(g);
+            var c = g.configuration;
+            return (object)new { world = Grid.WorldIdx[cell], x = Grid.CellToXY(cell).x, y = Grid.CellToXY(cell).y,
+                prefab = g.GetComponent<KPrefabID>().PrefabTag.Name, name = g.GetProperName(), element = c.geyserType.element.ToString(),
+                temperature = c.GetTemperature(), average = c.GetAverageEmission(), emitRate = c.GetEmitRate(),
+                onDuration = c.GetOnDuration(), iteration = c.GetIterationLength(), yearOn = c.GetYearOnDuration(), year = c.GetYearLength() };
+        }).ToList();
+        var marks = new System.Text.RegularExpressions.Regex("Telepad|POI|Gravitas|Warp|Teleporter|OilWell|Headquarters|HeatSink|Artifact|Lonely|Cryo|Vending|Satellite");
+        var landmarks = UnityEngine.Object.FindObjectsOfType<KPrefabID>().Where(p => marks.IsMatch(p.PrefabTag.Name)).Select(p =>
+        {
+            int cell = Grid.PosToCell(p);
+            return (object)new { world = Grid.IsValidCell(cell) ? Grid.WorldIdx[cell] : -1, x = Grid.CellToXY(cell).x, y = Grid.CellToXY(cell).y,
+                prefab = p.PrefabTag.Name, name = p.GetProperName() };
+        }).ToList();
+        var elements = ElementLoader.elements.Select((e, i) => (object)new { i, id = e.id.ToString(), name = e.name,
+            state = e.IsSolid ? "solid" : e.IsLiquid ? "liquid" : e.IsGas ? "gas" : "vacuum",
+            ui = e.substance != null ? Hex(e.substance.uiColour) : "#000000", colour = e.substance != null ? Hex(e.substance.colour) : "#000000" }).ToList();
+        var meta = new { seed = CustomGameSettings.Instance.GetSettingsCoordinate(), cycle = GameClock.Instance.GetCycle() + 1,
+            colony = SaveGame.Instance.BaseName, worlds, geysers, landmarks, elements,
+            zoneColours = zones.zoneColours.Select(c => Hex(c)).ToList(), zoneNames = Enum.GetNames(typeof(ProcGen.SubWorld.ZoneType)) };
+        File.WriteAllText(Path.Combine(Driver.Root, "dump.json"), JsonConvert.SerializeObject(meta, Formatting.Indented));
+        return new { worlds = worlds.Count, geysers = geysers.Count, landmarks = landmarks.Count };
     }
 
     private static object Snapshot()
