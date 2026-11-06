@@ -7,6 +7,30 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VERSION="${1:?usage: publish-workshop.sh VERSION NOTE_FILE}"
 NOTE="${2:?usage: publish-workshop.sh VERSION NOTE_FILE}"
+
+# Publishing makes Steam update the item inside any running ONI, and verification downloads it
+# as the game, so first take the lock local ONI projects share for native runs. The lock's file
+# descriptor passes to this script when Python execs it, and closes when the script ends.
+LOCK="$HOME/Library/Application Support/unity.Klei.Oxygen Not Included/mods/.native-validation.lock"
+if [[ -z "${ONI_LOCK_FD:-}" ]]; then
+  exec python3 -c '
+import fcntl, json, os, sys
+from datetime import datetime, timezone
+lock = open(sys.argv[1], "a+")
+try:
+    fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+except BlockingIOError:
+    lock.seek(0)
+    print("Waiting for the shared ONI install: " + lock.read(), flush=True)
+    fcntl.flock(lock, fcntl.LOCK_EX)
+lock.seek(0); lock.truncate()
+json.dump({"pid": os.getpid(), "project": sys.argv[2], "since": datetime.now(timezone.utc).isoformat()}, lock)
+lock.flush()
+os.set_inheritable(lock.fileno(), True)
+os.environ["ONI_LOCK_FD"] = str(lock.fileno())
+os.execvp("bash", ["bash"] + sys.argv[3:])
+' "$LOCK" "$ROOT_DIR" "$0" "$@"
+fi
 ITEM=3695988693
 OWNER=76561198853917603
 ONI_APP_PATH="${ONI_APP_PATH:-$HOME/Library/Application Support/Steam/steamapps/common/OxygenNotIncluded/OxygenNotIncluded.app}"
@@ -18,7 +42,7 @@ if ! mkdir "$OUT/.active" 2>/dev/null; then
   echo "Another publication of $VERSION is running, or one was interrupted; inspect $OUT and remove $OUT/.active" >&2
   exit 1
 fi
-trap 'rmdir "$OUT/.active"' EXIT
+trap 'rmdir "$OUT/.active"; : > "$LOCK"' EXIT
 
 readback() {
   curl -fsS -X POST https://api.steampowered.com/ISteamRemoteStorage/GetPublishedFileDetails/v1/ \
