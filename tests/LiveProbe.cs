@@ -402,14 +402,20 @@ public sealed class Driver : MonoBehaviour
             return (object)new { world = Grid.IsValidCell(cell) ? Grid.WorldIdx[cell] : -1, x = Grid.CellToXY(cell).x, y = Grid.CellToXY(cell).y,
                 prefab = p.PrefabTag.Name, name = p.GetProperName() };
         }).ToList();
+        // Unexplored areas keep their worldgen spawns (geysers, POIs) pending until revealed.
+        var pending = ((IEnumerable)AccessTools.Field(typeof(WorldGenSpawner), "spawnables").GetValue(Game.Instance.GetComponent<WorldGenSpawner>()))
+            .Cast<object>().Select(o => (TemplateClasses.Prefab)AccessTools.Property(o.GetType(), "spawnInfo").GetValue(o))
+            .Where(p => marks.IsMatch(p.id) || p.id.StartsWith("Geyser") || p.id.Contains("Vent") || p.id.Contains("Volcano"))
+            .Select(p => (object)new { world = Grid.IsValidCell(Grid.XYToCell(p.location_x, p.location_y)) ? Grid.WorldIdx[Grid.XYToCell(p.location_x, p.location_y)] : -1,
+                x = p.location_x, y = p.location_y, prefab = p.id }).ToList();
         var elements = ElementLoader.elements.Select((e, i) => (object)new { i, id = e.id.ToString(), name = e.name,
             state = e.IsSolid ? "solid" : e.IsLiquid ? "liquid" : e.IsGas ? "gas" : "vacuum",
             ui = e.substance != null ? Hex(e.substance.uiColour) : "#000000", colour = e.substance != null ? Hex(e.substance.colour) : "#000000" }).ToList();
         var meta = new { seed = CustomGameSettings.Instance.GetSettingsCoordinate(), cycle = GameClock.Instance.GetCycle() + 1,
-            colony = SaveGame.Instance.BaseName, worlds, geysers, landmarks, elements,
+            colony = SaveGame.Instance.BaseName, worlds, geysers, landmarks, pending, elements,
             zoneColours = zones.zoneColours.Select(c => Hex(c)).ToList(), zoneNames = Enum.GetNames(typeof(ProcGen.SubWorld.ZoneType)) };
         File.WriteAllText(Path.Combine(Driver.Root, "dump.json"), JsonConvert.SerializeObject(meta, Formatting.Indented));
-        return new { worlds = worlds.Count, geysers = geysers.Count, landmarks = landmarks.Count };
+        return new { worlds = worlds.Count, geysers = geysers.Count, landmarks = landmarks.Count, pending = pending.Count };
     }
 
     private static object Snapshot()
