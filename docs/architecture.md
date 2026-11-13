@@ -35,29 +35,38 @@ while a preview is active. Camera bounds apply to the active world or full canva
 
 ## Map Export
 
-`MapExport` saves what the player is looking at as one framed PNG: the previewed asteroid
-during World preview, the whole canvas during Canvas preview, otherwise the active world
-with its real fog (rocket interiors included). It reuses the game's timelapse contract
-instead of a renderer of its own. At the end of one frame it freezes the screen on
-`timelapseFreezeCamera`, enters `DebugHandler.SetTimelapseMode` for the target world (hides
-UI, refreshes zone rendering), turns the overlay off and snaps the camera wide enough that
-tile meshes build for the whole target. At the end of the next frame it sets the exact
-frame and calls `CameraController.RenderForTimelapser` into its own RenderTexture, then
-restores camera, overlay, timelapse mode and freeze camera in a `finally`. Preview zoom
-limits pause while capturing. Readiness matches the shortcuts (no capture during a world
-fade or another timelapse), and an active world with nothing explored gets a message
-instead of a black image.
+Shift + F9 prints collectible cards of what the player is looking at: the previewed asteroid
+during World preview, every asteroid of the cluster as one set sheet during Canvas preview, and
+otherwise the active world with its real fog (rocket interiors print as unnumbered cards; an
+active world with nothing explored gets a message instead). The design and its tier rules are
+in [directions](directions.md#map-export-as-collectible-cards-design-approved-2026-11-13).
 
-Size: whole pixels per cell, chosen so the long side lands near 3072 px (16 at most, at
-least 1), within the GPU texture limit; a 128x153 asteroid exports at 16 px per cell
-(2220x2792), the 1114x178 test canvas at 3 (3576x1002). The caption is drawn with the
-game's TextMeshPro font by a temporary camera far from the scene on layer 31, one unit per
-pixel: world name and the mod credit on one row, colony, cycle and the seed coordinate
-(`CustomGameSettings.GetSettingsCoordinate`) below, on a dark ground with margins of 3.5%
-of the long side. Files go to `Util.RootFolder()/RevealStarMap/exports/` as
-`Colony - World - Cycle N.png`, never overwriting, and the path is always shown since the
-export is an explicit action. The shortcut defaults to Shift + F9 and pauses with a message
-while it equals the starmap or canvas shortcut.
+`MapExport` holds the camera only for the capture. For each card it leaves and re-enters
+`DebugHandler.SetTimelapseMode` with the card's world (the override remembers the world it
+replaces, and non-active worlds render dimmed), snaps a frame wide enough for tile meshes,
+and one frame later renders the world cameras with `CameraController.RenderForTimelapser`
+into its own texture at whole pixels per cell (long side near 2400 px). Camera, overlay,
+timelapse mode and the freeze camera are restored as soon as the terrain is in memory; preview
+zoom limits pause only while the camera is framed.
+
+The card is pure computation and runs on worker threads, all cards of a set in parallel.
+`Cards/CardData` reads the facts: spawned `Geyser` configurations, pending `WorldGenSpawner`
+spawns (type known, output unknown until revealed), traits, the world's description, biome
+shares, seed, cycle, and a SHA-256 of seed and world name that fixes every variant for a
+seed. `Cards/CardCanvas` is a small straight-alpha raster (scanline polygons, coverage-buffer
+strokes, index-masked composites, grain, blur, 2x supersampling). `Cards/CardComposer` draws
+the card, and `Cards/CardArt` brings in the game's own pixels: TextMeshPro type (GRAYSTROKE for
+Latin titles, the localized font otherwise), prefab UI sprites and the world's starmap sprite,
+each read back through a render texture. Those calls are queued to the main thread and served
+once per frame, so a worker never touches Unity. The sheet layout and PNG encoding
+(`ImageConversion.EncodeArrayToPNG`) also run off the main thread.
+
+Measured on the neutral test save (8 asteroids, on the Pro): a single card holds the camera
+1.1 s and composes in about 10 s while the game keeps running; the 8-card set takes 3.4 s of
+capture and 11 s of parallel composition, 15 s in all (42.6 s before threading), with frames
+at 51 ms mean during composition and 19 ms after. Files go to
+`Util.RootFolder()/RevealStarMap/exports/` as `Colony - World - Cycle N.png`, never
+overwriting, and the path is always shown since the export is an explicit action.
 
 ## Permanent Survey
 

@@ -54,5 +54,9 @@
   "export.canvas": "All worlds",
   "export.empty": "Nothing on this world has been explored yet. Preview it first to export its terrain.",
   "error.export": "The map could not be exported: {0}",
-  "error.export.conflict": "The export shortcut {0} is already used by another action. Choose a different one in Mod Options. Export is paused until then."
+  "error.export.conflict": "The export shortcut {0} is already used by another action. Choose a different one in Mod Options. Export is paused until then.",
+  "card.start": "Start Asteroid",
+  "card.asteroid": "Asteroid",
+  "card.more": "+ {0} more kinds",
+  "card.set": "{0} asteroids"
 }

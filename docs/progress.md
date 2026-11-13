@@ -583,3 +583,24 @@ Native acceptance on campaign.sav copies (`artifacts/e2e-20261106`, `-b`, `-c`):
 Exports from test runs were moved out of the game folder into each evidence root. The images
 were sent to the user for review; release waits for their verdict on the look. Workshop stays
 untouched until its storage is restored.
+
+## 2026-11-06 to 11-13: Map Export Becomes a Collectible Card Set
+
+The first export (a framed render with a caption) passed native acceptance, but the user judged
+it a big screenshot with no point. The user then asked for game feel, for stamp and card
+collecting, and finally for foil, filigree, gold, hidden variants and stamps of every kind.
+Mockups were drawn offline from LiveProbe data of a neutral save (`artifacts/neutral/galaxy.sav`,
+a fresh ce-bench universe, never the user's colony): an information map (rejected as a sterile
+infographic), game-styled cards with small planet sprites (not quite there), then full-art cards
+whose art is the revealed terrain (approved), then tiers and variants (approved). The design
+lives in `docs/directions.md`; `design/cards/mock6.py` is its reference implementation.
+
+The C# port prints the same cards in the game. Findings on the way: canvas renders dim every
+world but the active one, so each card makes its world the timelapse active world; unexplored
+geysers exist only as pending `WorldGenSpawner` spawns; the first composition took 10.7 s per
+card and froze the game, so composition and encoding moved to worker threads with Unity calls
+queued to the main thread (set export 42.6 s to 15.3 s, game responsive). Native runs on the
+Pro failed twice with "Steam not initialized in time" after Steam had logged off; `open -a
+Steam` signs back in from the saved session, and runs are launched in their own session so they
+outlive the agent's turn. 54 managed checks pass, including the seed hash and set code matching
+the reference design. Evidence: `artifacts/cards-20261113` (exports, player.log, perf).

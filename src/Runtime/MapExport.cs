@@ -1,66 +1,38 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using TMPro;
+using System.Threading.Tasks;
+using RevealStarMap.Runtime.Cards;
 using RevealStarMap.State;
 using UnityEngine;
 
 namespace RevealStarMap.Runtime;
 
-// Saves what the player is looking at as a framed PNG: the previewed asteroid, the whole canvas
-// during Canvas preview, or otherwise the active world as explored. The capture follows the game's
-// own timelapse contract (Timelapser.Render): freeze the screen and frame the target at the end of
-// one frame, render the world cameras into an offscreen texture at the end of the next, restore.
+// Prints collectible cards of what the player is looking at: the previewed asteroid, every
+// asteroid during Canvas preview (a set sheet), or otherwise the active world as explored.
+// Terrain comes from the game's own timelapse contract (Timelapser.Render): freeze the screen
+// and make the target the active world at the end of one frame, render the world cameras into
+// an offscreen texture at the end of the next, restore. The card itself is composed on the CPU.
 internal static class MapExport
 {
-    internal readonly struct Layout
-    {
-        internal Layout(int cells, int mapWidth, int mapHeight, int margin, int caption)
-        {
-            PixelsPerCell = cells;
-            MapWidth = mapWidth;
-            MapHeight = mapHeight;
-            Margin = margin;
-            Caption = caption;
-        }
-
-        internal int PixelsPerCell { get; }
-        internal int MapWidth { get; }
-        internal int MapHeight { get; }
-        internal int Margin { get; }
-        internal int Caption { get; }
-        internal int Width => MapWidth + 2 * Margin;
-        internal int Height => Margin + MapHeight + Caption;
-    }
-
-    private const int TargetLongSide = 3072;
-    private const int CaptionLayer = 31;
-    private static readonly Color Ground = new Color32(22, 24, 31, 255);
-    private static readonly Color TitleColor = new Color32(236, 237, 241, 255);
-    private static readonly Color DetailColor = new Color32(150, 155, 168, 255);
-    private static readonly Color CreditColor = new Color32(104, 109, 122, 255);
-    private static bool capturing;
+    private const int TerrainLongSide = 2400;
+    private static bool capturing, framing;
 
     internal static bool Capturing => capturing;
 
-    // Integer pixels per cell keep tiles crisp; the long side lands near TargetLongSide.
-    internal static Layout ComputeLayout(int widthCells, int heightCells, int maxTextureSize)
+    // True only while the camera is held on an export frame; preview zoom limits pause meanwhile.
+    internal static bool Framing => framing;
+
+    // Whole pixels per cell keep tiles crisp; the long side lands near TerrainLongSide.
+    internal static int PixelsPerCell(int widthCells, int heightCells, int maxTextureSize)
     {
         int longCells = Math.Max(1, Math.Max(widthCells, heightCells));
-        int cells = Math.Max(1, Math.Min(16, (int)Math.Round(TargetLongSide / (double)longCells)));
-        int margin = 0, caption = 0;
-        for (; cells >= 1; cells--)
-        {
-            int longPixels = longCells * cells;
-            margin = (int)Math.Round(Math.Min(160.0, Math.Max(48.0, longPixels * 0.035)));
-            caption = margin * 3;
-            if (widthCells * cells + 2 * margin <= maxTextureSize && heightCells * cells + margin + caption <= maxTextureSize)
-                break;
-        }
-        cells = Math.Max(1, cells);
-        return new Layout(cells, widthCells * cells, heightCells * cells, margin, caption);
+        int cells = Math.Max(1, Math.Min(16, (int)Math.Round(TerrainLongSide / (double)longCells)));
+        while (cells > 1 && longCells * cells > maxTextureSize) cells--;
+        return cells;
     }
 
     internal static string FileName(string colony, string subject, int cycle, Func<string, bool> exists)
@@ -93,25 +65,44 @@ internal static class MapExport
         Texture2D? frozen = null;
         bool timelapse = false;
         var timer = Stopwatch.StartNew();
+        var jobs = new List<Task<CardCanvas>>();
+        var cards = new List<CardData>();
+        bool restored = false;
+        void Restore()
+        {
+            if (restored) return;
+            restored = true;
+            framing = false;
+            if (timelapse) DebugHandler.SetTimelapseMode(false);
+            camera.SnapTo(position, zoom);
+            if (OverlayScreen.Instance != null && OverlayScreen.Instance.mode != overlay) OverlayScreen.Instance.ToggleOverlay(overlay, false);
+            if (freeze != null) freeze.enabled = false;
+            if (frozen != null) UnityEngine.Object.Destroy(frozen);
+        }
+        CardArt.BindMainThread();
+        framing = true;
+        bool set = RevealSessionCoordinator.IsCanvasPreviewActive;
         try
         {
-            bool canvas = RevealSessionCoordinator.IsCanvasPreviewActive;
-            WorldContainer? world = ClusterManager.Instance.GetWorld(
-                RevealSessionCoordinator.ActiveMode == RevealPreviewMode.World ? RevealSessionCoordinator.ActiveWorldId : ClusterManager.Instance.activeWorldId);
-            if (world == null) yield break;
-            Vector2I origin = canvas ? new Vector2I(0, 0) : world.WorldOffset;
-            Vector2I size = canvas ? new Vector2I(Grid.WidthInCells, Grid.HeightInCells) : world.WorldSize;
-            if (!canvas && RevealSessionCoordinator.ActiveMode != RevealPreviewMode.World && !AnyExplored(origin, size))
+            bool preview = set || RevealSessionCoordinator.ActiveMode == RevealPreviewMode.World;
+            List<CardData> cluster = CardData.ReadCluster(preview);
+            if (set) cards = cluster;
+            else
             {
-                RevealSessionCoordinator.Warn("export.empty");
-                yield break;
+                int id = RevealSessionCoordinator.ActiveMode == RevealPreviewMode.World ? RevealSessionCoordinator.ActiveWorldId : ClusterManager.Instance.activeWorldId;
+                WorldContainer? world = ClusterManager.Instance.GetWorld(id);
+                if (world == null) yield break;
+                if (!preview && !AnyExplored(world.WorldOffset, world.WorldSize))
+                {
+                    RevealSessionCoordinator.Warn("export.empty");
+                    yield break;
+                }
+                // Rocket interiors are not part of the set; they print as an unnumbered card.
+                cards.Add(cluster.FirstOrDefault(c => c.World.id == id) ?? CardData.Read(world, 0, cluster.Count, preview));
             }
-            Layout layout = ComputeLayout(size.x, size.y, Math.Min(SystemInfo.maxTextureSize, 16384));
-            Vector3 center = new Vector3(origin.x + size.x / 2f, origin.y + size.y / 2f, position.z);
 
             yield return SequenceUtil.WaitForEndOfFrame;
-            // Frame 1: hold the current picture on screen, hide UI and frame the target. The frame
-            // covers the target at the screen's aspect so tile meshes build for all of it.
+            // Hold the current picture on screen and hide UI for the whole run.
             if (freeze != null)
             {
                 frozen = new Texture2D(Camera.main.pixelWidth, Camera.main.pixelHeight, TextureFormat.RGB24, false);
@@ -120,53 +111,137 @@ internal static class MapExport
                 freeze.GetComponent<FillRenderTargetEffect>()?.SetFillTexture(frozen);
                 freeze.enabled = true;
             }
-            DebugHandler.SetTimelapseMode(true, world.id);
-            timelapse = true;
             OverlayScreen.Instance?.ToggleOverlay(OverlayModes.None.ID, false);
-            camera.SnapTo(center, GridRevealRuntime.ComputeOrthoSize(size.x, size.y) + 4f);
-
-            yield return SequenceUtil.WaitForEndOfFrame;
-            Finish(camera, center, size, layout, canvas, world, timer);
+            foreach (CardData card in cards)
+            {
+                WorldContainer world = card.World;
+                Vector3 center = new Vector3(world.WorldOffset.x + world.WorldSize.x / 2f, world.WorldOffset.y + world.WorldSize.y / 2f, position.z);
+                // The override remembers the world it replaces, so leave it before entering the next one.
+                if (timelapse) DebugHandler.SetTimelapseMode(false);
+                DebugHandler.SetTimelapseMode(true, world.id);
+                timelapse = true;
+                camera.SnapTo(center, GridRevealRuntime.ComputeOrthoSize(world.WorldSize.x, world.WorldSize.y) + 4f);
+                CardArt.Pump();
+                yield return SequenceUtil.WaitForEndOfFrame;
+                CardCanvas? terrain = RenderTerrain(camera, world, center);
+                // The card's pixels are pure computation; compose it off the main thread.
+                jobs.Add(Task.Run(() => CardComposer.Compose(card, terrain)));
+            }
+            Restore();
+            long captured = timer.ElapsedMilliseconds;
+            while (jobs.Any(j => !j.IsCompleted))
+            {
+                CardArt.Pump();
+                yield return null;
+            }
+            Task<CardCanvas>? failed = jobs.FirstOrDefault(j => j.IsFaulted);
+            if (failed != null)
+            {
+                Exception e = failed.Exception?.GetBaseException() ?? new Exception("unknown");
+                UnityEngine.Debug.LogError($"{RevealStarMapMod.Tag} Card composition failed. {e}");
+                RevealSessionCoordinator.Warn("error.export", e.Message);
+                yield break;
+            }
+            List<CardCanvas> printed = jobs.Select(j => j.Result).ToList();
+            UnityEngine.Debug.Log($"{RevealStarMapMod.Tag} Captured terrain in {captured} ms; cards composed in {timer.ElapsedMilliseconds - captured} ms.");
+            // Sheet layout and PNG encoding also run off the main thread; only type is served here.
+            Task<byte[]> encode = Task.Run(() => Encode(set ? Sheet(cards, printed) : printed[0]));
+            while (!encode.IsCompleted)
+            {
+                CardArt.Pump();
+                yield return null;
+            }
+            if (encode.IsFaulted)
+            {
+                Exception e = encode.Exception?.GetBaseException() ?? new Exception("unknown");
+                UnityEngine.Debug.LogError($"{RevealStarMapMod.Tag} Map export failed. {e}");
+                RevealSessionCoordinator.Warn("error.export", e.Message);
+                yield break;
+            }
+            Save(encode.Result, cards, set, timer);
         }
         finally
         {
-            if (timelapse) DebugHandler.SetTimelapseMode(false);
-            camera.SnapTo(position, zoom);
-            if (OverlayScreen.Instance != null && OverlayScreen.Instance.mode != overlay) OverlayScreen.Instance.ToggleOverlay(overlay, false);
-            if (freeze != null) freeze.enabled = false;
-            if (frozen != null) UnityEngine.Object.Destroy(frozen);
+            Restore();
+            CardArt.Clear();
             capturing = false;
         }
     }
 
-    // Frame 2: render exactly the target, then the caption, and read both into one image.
-    private static void Finish(CameraController camera, Vector3 center, Vector2I size, Layout layout, bool canvas, WorldContainer world, Stopwatch timer)
+    private static CardCanvas? RenderTerrain(CameraController camera, WorldContainer world, Vector3 center)
     {
-        RenderTexture? map = null, caption = null;
+        RenderTexture? map = null;
         RenderTexture active = RenderTexture.active;
         try
         {
-            map = new RenderTexture(layout.MapWidth, layout.MapHeight, 24, RenderTextureFormat.ARGB32);
+            int ppc = PixelsPerCell(world.WorldSize.x, world.WorldSize.y, Math.Min(SystemInfo.maxTextureSize, 16384));
+            map = new RenderTexture(world.WorldSize.x * ppc, world.WorldSize.y * ppc, 24, RenderTextureFormat.ARGB32);
             camera.SetPosition(center);
-            camera.OrthographicSize = size.y / 2f;
+            camera.OrthographicSize = world.WorldSize.y / 2f;
             camera.RenderForTimelapser(ref map);
-            caption = RenderCaption(layout, CaptionText(canvas, world));
-            var image = new Texture2D(layout.Width, layout.Height, TextureFormat.RGB24, false);
-            RenderTexture.active = caption;
-            image.ReadPixels(new Rect(0f, 0f, layout.Width, layout.Height), 0, 0);
+            var image = new Texture2D(map.width, map.height, TextureFormat.RGBA32, false);
             RenderTexture.active = map;
-            image.ReadPixels(new Rect(0f, 0f, layout.MapWidth, layout.MapHeight), layout.Margin, layout.Caption);
-            RenderTexture.active = active;
-            byte[] png = ImageConversion.EncodeToPNG(image);
+            image.ReadPixels(new Rect(0f, 0f, map.width, map.height), 0, 0);
+            CardCanvas terrain = CardCanvas.FromTexture(image);
             UnityEngine.Object.Destroy(image);
+            for (int i = 0; i < terrain.P.Length; i++) terrain.P[i].a = 255;
+            return terrain;
+        }
+        catch (Exception exception)
+        {
+            UnityEngine.Debug.LogError($"{RevealStarMapMod.Tag} Terrain capture failed for {world.GetProperName()}. {exception}");
+            return null;
+        }
+        finally
+        {
+            RenderTexture.active = active;
+            map?.Release();
+        }
+    }
 
+    // The whole cluster as one sheet: the colony's name in the game's header face over the cards.
+    private static CardCanvas Sheet(List<CardData> cards, List<CardCanvas> printed)
+    {
+        const int cols = 4, gap = 30, margin = 80, head = 240;
+        int rows = (printed.Count + cols - 1) / cols;
+        int w = 2 * margin + cols * CardComposer.CW + (cols - 1) * gap, h = head + rows * (CardComposer.CH + gap) + margin - gap;
+        var sheet = new CardCanvas(w, h, CardCanvas.Rgba(24, 22, 28));
+        CardData first = cards[0];
+        CardCanvas title = CardArt.Rim(CardArt.Text(first.Colony.ToUpperInvariant(), first.Colony.All(ch => ch < 128)
+            ? CardArt.Font("GRAYSTROKE REGULAR SDF") : Localization.FontAsset, 72), 3, CardCanvas.Rgba(23, 22, 28));
+        sheet.Composite(title, margin, 60);
+        CardCanvas sub = CardArt.Tint(CardArt.Text($"{RevealText.Format("card.set", cards.Count)}  ·  {RevealText.Format("export.cycle", first.Cycle)}  ·  {first.Seed}",
+            Localization.FontAsset, 26), CardCanvas.Rgba(170, 166, 156));
+        sheet.Composite(sub, margin + 4, 150);
+        for (int i = 0; i < printed.Count; i++)
+            sheet.Composite(printed[i], margin + i % cols * (CardComposer.CW + gap), head + i / cols * (CardComposer.CH + gap));
+        return sheet;
+    }
+
+    private static byte[] Encode(CardCanvas image)
+    {
+        var raw = new byte[image.W * image.H * 4];
+        for (int y = 0; y < image.H; y++)
+            for (int x = 0; x < image.W; x++)
+            {
+                Color32 c = image.P[y * image.W + x];
+                int o = ((image.H - 1 - y) * image.W + x) * 4;
+                raw[o] = c.r; raw[o + 1] = c.g; raw[o + 2] = c.b; raw[o + 3] = c.a;
+            }
+        return ImageConversion.EncodeArrayToPNG(raw, UnityEngine.Experimental.Rendering.GraphicsFormat.R8G8B8A8_UNorm, (uint)image.W, (uint)image.H);
+    }
+
+    private static void Save(byte[] png, List<CardData> cards, bool set, Stopwatch timer)
+    {
+        try
+        {
             string folder = Path.Combine(Util.RootFolder(), "RevealStarMap", "exports");
             Directory.CreateDirectory(folder);
-            string subject = canvas ? RevealText.Get("export.canvas") : GridRevealRuntime.GetWorldName(world);
-            string path = Path.Combine(folder, FileName(SaveGame.Instance?.BaseName ?? "Colony", subject, GameClock.Instance.GetCycle() + 1,
-                name => File.Exists(Path.Combine(folder, name))));
+            CardData first = cards[0];
+            string subject = set ? RevealText.Get("export.canvas") : first.Name;
+            string path = Path.Combine(folder, FileName(first.Colony, subject, first.Cycle, name => File.Exists(Path.Combine(folder, name))));
             File.WriteAllBytes(path, png);
-            UnityEngine.Debug.Log($"{RevealStarMapMod.Tag} Exported {layout.Width}x{layout.Height} at {layout.PixelsPerCell} px per cell in {timer.ElapsedMilliseconds} ms: {path}");
+            UnityEngine.Debug.Log($"{RevealStarMapMod.Tag} Exported {cards.Count} card(s) in {timer.ElapsedMilliseconds} ms: {path}");
             // The file is the result of an explicit action, so its location is always shown.
             RevealSessionCoordinator.Warn("status.export.done", path);
         }
@@ -174,12 +249,6 @@ internal static class MapExport
         {
             UnityEngine.Debug.LogError($"{RevealStarMapMod.Tag} Map export failed. {exception}");
             RevealSessionCoordinator.Warn("error.export", exception.Message);
-        }
-        finally
-        {
-            RenderTexture.active = active;
-            map?.Release();
-            caption?.Release();
         }
     }
 
@@ -192,79 +261,5 @@ internal static class MapExport
                 if (Grid.IsValidCell(cell) && Grid.Visible[cell] > 0) return true;
             }
         return false;
-    }
-
-    private static (string Title, string Detail) CaptionText(bool canvas, WorldContainer world)
-    {
-        string colony = SaveGame.Instance?.BaseName ?? string.Empty;
-        string cycle = RevealText.Format("export.cycle", GameClock.Instance.GetCycle() + 1);
-        string seed = CustomGameSettings.Instance != null ? CustomGameSettings.Instance.GetSettingsCoordinate() : string.Empty;
-        string title = canvas ? colony : GridRevealRuntime.GetWorldName(world);
-        string[] detail = canvas ? new[] { RevealText.Get("export.canvas"), cycle, seed } : new[] { colony, cycle, seed };
-        return (title, string.Join("   ·   ", detail.Where(s => !string.IsNullOrEmpty(s))));
-    }
-
-    // Draws the ground and caption with the game's font through a temporary camera, one world unit
-    // per pixel, far from the scene and on a layer nothing else uses.
-    private static RenderTexture RenderCaption(Layout layout, (string Title, string Detail) text)
-    {
-        var target = new RenderTexture(layout.Width, layout.Height, 24, RenderTextureFormat.ARGB32);
-        var root = new GameObject("RevealStarMapExportCaption");
-        try
-        {
-            root.transform.position = new Vector3(-100000f, -100000f, 0f);
-            var lens = new GameObject("Camera").AddComponent<Camera>();
-            lens.transform.SetParent(root.transform, false);
-            lens.transform.localPosition = new Vector3(layout.Width / 2f, layout.Height / 2f, -10f);
-            lens.orthographic = true;
-            lens.orthographicSize = layout.Height / 2f;
-            lens.clearFlags = CameraClearFlags.SolidColor;
-            lens.backgroundColor = Ground;
-            lens.cullingMask = 1 << CaptionLayer;
-            lens.nearClipPlane = 1f;
-            lens.farClipPlane = 20f;
-            lens.enabled = false;
-            lens.targetTexture = target;
-
-            float unit = layout.Margin;
-            float baseline = unit * 0.95f;
-            // The credit shares the title's row, so the detail line keeps the full width on narrow maps.
-            float row = baseline + unit * 0.62f, inner = layout.Width - 2f * layout.Margin;
-            Label(root, text.Title, unit * 0.62f, TitleColor, TextAlignmentOptions.BottomLeft,
-                new Vector2(layout.Margin, row), inner * 0.68f);
-            Label(root, RevealStarMapMod.ModName, unit * 0.3f, CreditColor, TextAlignmentOptions.BottomRight,
-                new Vector2(layout.Width - layout.Margin, row), inner * 0.3f);
-            Label(root, text.Detail, unit * 0.34f, DetailColor, TextAlignmentOptions.BottomLeft,
-                new Vector2(layout.Margin, baseline), inner);
-            lens.Render();
-            lens.targetTexture = null;
-        }
-        finally
-        {
-            UnityEngine.Object.DestroyImmediate(root);
-        }
-        return target;
-    }
-
-    private static void Label(GameObject root, string text, float pixels, Color color, TextAlignmentOptions alignment, Vector2 anchor, float width)
-    {
-        var item = new GameObject("Label") { layer = CaptionLayer };
-        item.transform.SetParent(root.transform, false);
-        var label = item.AddComponent<TextMeshPro>();
-        label.font = Localization.FontAsset;
-        label.textWrappingMode = TextWrappingModes.NoWrap;
-        label.overflowMode = TextOverflowModes.Ellipsis;
-        label.alignment = alignment;
-        label.color = color;
-        label.text = text;
-        // Size by measured line height so the result does not depend on TextMeshPro's unit scale.
-        label.fontSize = 10f;
-        float line = label.GetPreferredValues("Hg").y;
-        label.fontSize = line > 0f ? 10f * pixels / line : pixels;
-        bool right = alignment == TextAlignmentOptions.BottomRight;
-        label.rectTransform.pivot = new Vector2(right ? 1f : 0f, 0f);
-        label.rectTransform.sizeDelta = new Vector2(width, pixels * 1.6f);
-        label.rectTransform.localPosition = new Vector3(anchor.x, anchor.y - pixels * 0.25f, 0f);
-        label.ForceMeshUpdate();
     }
 }

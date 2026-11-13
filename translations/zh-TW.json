@@ -54,5 +54,9 @@
   "export.canvas": "全部星球",
   "export.empty": "這個世界還沒有任何探索區域。先預覽它，再匯出地形。",
   "error.export": "地圖匯出失敗：{0}",
-  "error.export.conflict": "匯出快捷鍵 {0} 已被其他操作佔用。請在模組選項中換一個，在此之前匯出暫停。"
+  "error.export.conflict": "匯出快捷鍵 {0} 已被其他操作佔用。請在模組選項中換一個，在此之前匯出暫停。",
+  "card.start": "起始星",
+  "card.asteroid": "小行星",
+  "card.more": "另有 {0} 種",
+  "card.set": "{0} 顆星球"
 }

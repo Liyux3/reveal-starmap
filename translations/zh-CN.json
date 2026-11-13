@@ -54,5 +54,9 @@
   "export.canvas": "全部星球",
   "export.empty": "这个世界还没有任何探索区域。先预览它，再导出地形。",
   "error.export": "地图导出失败：{0}",
-  "error.export.conflict": "导出快捷键 {0} 已被其他操作占用。请在模组选项中换一个，在此之前导出暂停。"
+  "error.export.conflict": "导出快捷键 {0} 已被其他操作占用。请在模组选项中换一个，在此之前导出暂停。",
+  "card.start": "起始星",
+  "card.asteroid": "小行星",
+  "card.more": "另有 {0} 种",
+  "card.set": "{0} 颗星球"
 }

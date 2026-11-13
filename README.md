@@ -5,8 +5,9 @@ then put it back.
 
 - **Shift + F7** previews the starmap. Press again to return.
 - **Shift + F8** previews the canvas containing all worlds. Press again to return.
-- **Shift + F9** saves a framed PNG of what you are viewing: the previewed asteroid, the
-  whole canvas, or the current asteroid as explored, captioned with its name, cycle and seed.
+- **Shift + F9** prints a collectible card of the asteroid you are viewing, made from its
+  revealed terrain, geysers and game art; during the canvas preview it prints the whole set.
+  Rarity, foils and hidden variants follow the seed, so the same seed prints the same cards.
 - Select an asteroid and use **Preview map** or **End preview** in its details.
 
 Exports go to `RevealStarMap/exports` in the game's data folder, next to `save_files`.

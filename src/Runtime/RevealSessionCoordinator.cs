@@ -281,7 +281,7 @@ internal static class RevealSessionCoordinator
 
     internal static void EnforcePreviewZoomLimit(CameraController controller)
     {
-        if (Game.Instance == null || Game.Instance.IsLoading() || MapExport.Capturing) return;
+        if (Game.Instance == null || Game.Instance.IsLoading() || MapExport.Framing) return;
         float limit;
         if (ActiveMode == RevealPreviewMode.Canvas && Grid.IsInitialized())
         {

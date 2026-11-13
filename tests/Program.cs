@@ -202,14 +202,15 @@ apply.Invoke(null, new object[] { new RevealStarMapSettings() });
 Check(upgraded.ExportModifier == RevealModifier.Shift && upgraded.ExportFunctionKey == RevealFunctionKey.F9 && pausedOnClash &&
     !(bool)exportConflict.GetValue(null)!, "Older configs gain Shift + F9 export, which pauses only when it clashes with an earlier shortcut");
 var exportType = mod.GetType("RevealStarMap.Runtime.MapExport", true)!;
-object Layout(int w, int h, int max) => exportType.GetMethod("ComputeLayout", BindingFlags.NonPublic | BindingFlags.Static)!.Invoke(null, new object[] { w, h, max })!;
-int Px(object layout, string name) => (int)layout.GetType().GetProperty(name, BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(layout)!;
-var start = Layout(256, 384, 16384);
-var moonlet = Layout(64, 96, 16384);
-var canvasLayout = Layout(4000, 3000, 8192);
-Check(Px(start, "PixelsPerCell") == 8 && Px(start, "MapHeight") == 3072 && Px(moonlet, "PixelsPerCell") == 16 &&
-    Px(canvasLayout, "PixelsPerCell") == 1 && Px(canvasLayout, "Width") <= 8192 && Px(start, "Height") == Px(start, "Margin") * 4 + 3072,
-    "Map export renders whole cells near a 3072 px long side within the texture limit");
+int Ppc(int w, int h, int max) => (int)exportType.GetMethod("PixelsPerCell", BindingFlags.NonPublic | BindingFlags.Static)!.Invoke(null, new object[] { w, h, max })!;
+Check(Ppc(240, 380, 16384) == 6 && Ppc(64, 96, 16384) == 16 && Ppc(4000, 3000, 8192) == 1 && Ppc(1000, 400, 2048) == 2,
+    "Card terrain renders whole cells near a 2400 px long side within the texture limit");
+var cardData = mod.GetType("RevealStarMap.Runtime.Cards.CardData", true)!;
+uint Hash(string seed, string world) => (uint)cardData.GetMethod("HashOf", BindingFlags.NonPublic | BindingFlags.Static)!.Invoke(null, new object[] { seed, world })!;
+string SetCode(string seed) => (string)cardData.GetMethod("SetCodeOf", BindingFlags.NonPublic | BindingFlags.Static)!.Invoke(null, new object[] { seed })!;
+Check(Hash("V-SNDST-C-20261025-0-0-CKZRH4Y1", "Chillora") % 16 == 0 && Hash("V-SNDST-C-20261025-0-0-CKZRH4Y1", "Earthona") % 16 == 6 &&
+    SetCode("V-SNDST-C-20261025-0-0-CKZRH4Y1") == "SNDST-C",
+    "Card variants follow the seed exactly as the approved reference design draws them");
 var fileName = (string)exportType.GetMethod("FileName", BindingFlags.NonPublic | BindingFlags.Static)!.Invoke(null, new object[] {
     "Fe/Colony", "Terra:", 12, new Func<string, bool>(n => n == "Fe Colony - Terra - Cycle 12.png") })!;
 Check(fileName == "Fe Colony - Terra - Cycle 12 (2).png", "Export file names are readable, safe and never overwrite an earlier export");
