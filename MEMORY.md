@@ -87,8 +87,10 @@ Status, 2026-11-05:
   Steam Support ticket HT-875C-93XN-FPD6 submitted 11/06 (replies to liyuxian1358531@icloud.com).
   The Workshop comment reply is posted. If nothing is restored in three to five business days,
   publish a new legacy listing and point the old description at it.
-- 0.5.0 candidate (not released): Shift + F9 map export, natively accepted 11/06
-  (`artifacts/e2e-20261106c`); GitHub release only after the user approves the look.
+- Released `v0.5.0.0` on GitHub 11/13 (lightweight tag at b0e28fa): Shift + F9 collectible
+  cards, approved by the user; assets 79ea9873 (Local) and bf7b88bb (Workshop), DLL 1e825cfa.
+  Store images from the neutral save are in `artifacts/workshop/0.5.0.0/store/`; the listing
+  session owns the new Workshop listing that replaces 3695988693.
 - Steam web: the user signed in to Steam in the Pro's Edge on 5 November; drive owner pages
   with `web_browse` CSS selectors (inspect refs are not OpenCLI click refs). Never type
   passwords or codes or read cookies.
@@ -114,7 +116,7 @@ Current user-facing feature set:
 - full live simulation canvas reveal and restore
 - world and canvas previews end when the player switches world, leaving saved views untouched
 - configurable hotkeys in `Mod Options`
-- Shift + F9 framed PNG export of the previewed asteroid, canvas or active world
+- Shift + F9 collectible card of the viewed asteroid, or the whole set in canvas preview
 - default reversible preview; optional permanent analysis for real rocket navigation
 - global preferences for language, shortcuts, action and feedback; silent preview by default
 - complete English, Simplified Chinese and Traditional Chinese catalogs
