@@ -618,3 +618,32 @@ that work and the Workshop scripts. 0.5.0 was released on GitHub at the 0.4.2 ba
   heavy colony, exploration, fog and analysis unchanged.
 - Store images from the neutral universe with the mod language set to English for that run
   (`artifacts/store2-20261113`), composed into `artifacts/workshop/0.5.0.0/store/`.
+
+## 2026-11-13: New Workshop Listing
+
+Steam Support answered the 11/06 ticket with a template (no technical help for Workshop
+content) and closed it; Klei ticket 131287 had only its auto-reply. The first item had lost 14
+subscribers in a week, so the user chose a new listing that the old one points to
+("一个新的，然后让它导向到新的", fully autonomous).
+
+- `workshop-publish.c` gained `create`: RemoteStorage `PublishWorkshopFile` in the uploader's
+  app context 636750, private, with the first item's eight tags, title, description and cover
+  read from a listing folder before Steam starts. `ITEM` became an argument; the wrapper takes
+  `--new LISTING_DIR` (49f5a18).
+- Created `3839074987` with the 0.5.0.0 release ZIP; the game-context download installed
+  `17092090862502601104_legacy.bin`, a regular file of 192979 bytes equal to the release asset
+  (`artifacts/workshop/0.5.0.0/create.json`, `verify.json`).
+- Gallery: the Browser Bridge cannot set file inputs (CDP `setFileInputFiles` returns "Not
+  allowed" without file access, a browser security setting left alone), so each image was sent
+  as Steam's own `PreviewFileUpload` form, with the page's hidden fields fetched as the user,
+  to depot-ingest; each returned `fileuploadsuccess=1`, and the gallery lists the four images
+  in order. Required DLC Spaced Out (1452490) ticked on `editrequireddlc`, then visibility set
+  public; public readback shows the ZIP filename, size, tags and both app IDs.
+- Description: the user's text with point edits (typo, options and survey lines from the
+  0.4.1 draft, a Shift + F9 cards line, a GitHub line) under a bilingual note that this is the
+  new home. Cover and gallery come from the neutral universe only.
+- First item: title `[MOVED 已迁移] Reveal everything! 显示全星图~` (Workshop convention, as in
+  "(OUTDATED)", "[Obsolete]" titles), a bilingual pointer heading above the original
+  description, and a bilingual pointer comment, held by Steam's automated link check at
+  posting time. Its content is untouched.
+

@@ -78,19 +78,18 @@ Status, 2026-11-05:
   accepted DLL `55e05a40...` (`artifacts/e2e-20261105/acceptance.json`).
 - GitHub credentials work only in the Pro's GUI session (keychain): run git and gh there
   through Codex; over ssh, and on the Air, they fail.
-- Workshop `3695988693`: converted to modern storage on 26 October and, as of 5 November,
-  provably stuck there. The web revert to 30 July set its pointer to the legacy handle
-  14374718941853451483, which Steam now fails to download as a manifest. Legacy RemoteStorage
-  commits and ISteamUGC SetAllowLegacyUpload both return EResultFail (2). Next step is the
-  user's decision: Steam Support, a new legacy listing, or GitHub only.
-- Support: Klei emailed 11/06 (livesupport@kleientertainment.com, from liyuxian1358@gmail.com);
-  Steam Support ticket HT-875C-93XN-FPD6 submitted 11/06 (replies to liyuxian1358531@icloud.com).
-  The Workshop comment reply is posted. If nothing is restored in three to five business days,
-  publish a new legacy listing and point the old description at it.
+- Workshop `3839074987` (created 11/13, legacy, public) is the listing; it carries 0.5.0.0,
+  verified as a subscriber install equal to the release ZIP, with the old tags, the Spaced Out
+  DLC requirement and four neutral gallery images. Updates go there with
+  `scripts/publish-workshop.sh VERSION NOTE_FILE`.
+- Workshop `3695988693` is retired: modern storage since 26 October cannot return to legacy
+  (Steam Support declined on 11/06 with a template and closed HT-875C-93XN-FPD6; Klei ticket
+  131287 had only an auto-reply by 11/13). Its title starts with [MOVED 已迁移], its description
+  opens with a bilingual pointer above the user's original text, and a pointer comment was
+  posted 11/13. Do not write to its content again.
 - Released `v0.5.0.0` on GitHub 11/13 (lightweight tag at b0e28fa): Shift + F9 collectible
   cards, approved by the user; assets 79ea9873 (Local) and bf7b88bb (Workshop), DLL 1e825cfa.
-  Store images from the neutral save are in `artifacts/workshop/0.5.0.0/store/`; the listing
-  session owns the new Workshop listing that replaces 3695988693.
+  Store images from the neutral save are in `artifacts/workshop/0.5.0.0/store/`.
 - Steam web: the user signed in to Steam in the Pro's Edge on 5 November; drive owner pages
   with `web_browse` CSS selectors (inspect refs are not OpenCLI click refs). Never type
   passwords or codes or read cookies.
@@ -107,7 +106,7 @@ Current implementation: [architecture](docs/architecture.md). History: [progress
 Primary distribution points:
 
 - GitHub: `https://github.com/Liyux3/reveal-starmap`
-- Steam Workshop item: `3695988693`
+- Steam Workshop item: `3839074987` (the first item, `3695988693`, points to it)
 
 Current user-facing feature set:
 

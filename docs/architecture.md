@@ -141,9 +141,13 @@ alone. Public readback must show a ZIP filename and the exact size, and a final 
 as the game must install a regular file equal to the release ZIP. Receipts are written
 before and after each remote write under `artifacts/workshop/`.
 
-The sole Workshop target is `3695988693`. After conversion to modern storage,
-legacy uploads completed with EResultFail (2) and retained the depot manifest.
-The owner selected preservation of this identity; a private recovery duplicate was
-deleted. Until an actual subscribed legacy ZIP is verified for the original item,
-GitHub remains the qualified installation path. Preserve the restored user-authored
-Workshop description when updating content.
+The Workshop target is `3839074987`, the `ITEM` constant in `publish-workshop.sh`. The first
+item, `3695988693`, was converted to modern storage by an ISteamUGC update on 26 October,
+after which every legacy upload failed with EResultFail (2); it now only points to the new
+item. `publish-workshop.sh VERSION --new LISTING_DIR` created the new one with the
+uploader's RemoteStorage `PublishWorkshopFile`, private and tagged like the first, from a
+listing folder of title, description and cover, then verified the subscriber install.
+Gallery images, required DLC and visibility are set on the item's web pages, which are
+metadata and leave storage legacy (the first item had gallery images and a DLC requirement
+through legacy updates until July). Nothing may call an ISteamUGC update on the item.
+Keep the user-authored Workshop description, with point edits only, when updating.

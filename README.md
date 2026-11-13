@@ -36,11 +36,12 @@ For details, see [behavior and data](docs/architecture.md) and
 
 ## Release Status
 
-Latest package: [**0.5.0.0**](https://github.com/Liyux3/reveal-starmap/releases/tag/v0.5.0.0).
-Workshop installation is currently affected by an upload-format issue. Use the
-`RevealStarMap-0.5.0.0.zip` download for manual installation while the original
-[Workshop listing](https://steamcommunity.com/sharedfiles/filedetails/?id=3695988693)
-is restored. Existing subscriptions stay attached to that listing.
+Latest package: [**0.5.0.0**](https://github.com/Liyux3/reveal-starmap/releases/tag/v0.5.0.0),
+on the [Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=3839074987) or as
+`RevealStarMap-0.5.0.0.zip` for a manual Local install. The
+[first listing](https://steamcommunity.com/sharedfiles/filedetails/?id=3695988693) can no longer
+be installed or updated since an October upload converted its storage; it now points here, so
+unsubscribe from it.
 
 0.5.0 passed 54 managed checks and native acceptance on a fresh test universe and a
 long campaign copy: previews, single-card and full-set exports, unchanged exploration
@@ -71,8 +72,9 @@ folder and a separate `-workshop.zip` with package files at its root.
 ONI's Steam installer expects a legacy ZIP file, not a modern Workshop depot directory.
 Release in this order: raise the version, run `./scripts/check.sh`, tag and publish the
 GitHub release, then run `./scripts/publish-workshop.sh VERSION NOTE_FILE`. It sends the
-release's Workshop ZIP to item `3695988693` through the official uploader's legacy
+release's Workshop ZIP to item `3839074987` through the official uploader's legacy
 contract, changes only the file and change note, and verifies a subscriber install.
+`--new LISTING_DIR` instead of the note creates a private listing the same way.
 Keep the Workshop description user-authored; edit it on Steam.
 
 The verifier uses the shipped DLL, its merged PLib and ONI managed types. It covers analysis

@@ -33,7 +33,7 @@ os.environ["ONI_LOCK_FD"] = str(lock.fileno())
 os.execvp("bash", ["bash"] + sys.argv[3:])
 ' "$LOCK" "$ROOT_DIR" "$0" "$@"
 fi
-ITEM=3695988693  # the listing every update goes to
+ITEM=3839074987  # the listing every update goes to
 OWNER=76561198853917603
 ONI_APP_PATH="${ONI_APP_PATH:-$HOME/Library/Application Support/Steam/steamapps/common/OxygenNotIncluded/OxygenNotIncluded.app}"
 SDK="$ONI_APP_PATH/Contents/PlugIns/steam_api.bundle/Contents/MacOS/libsteam_api.dylib"
