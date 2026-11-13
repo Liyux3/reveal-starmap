@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
-# Publish a released version to Workshop item 3695988693 and verify a subscriber install.
-# Usage: scripts/publish-workshop.sh VERSION NOTE_FILE
+# Publish a released version to the Workshop item and verify a subscriber install.
+# Usage: scripts/publish-workshop.sh VERSION NOTE_FILE         update ITEM
+#        scripts/publish-workshop.sh VERSION --new LISTING_DIR  create a private item instead
 # The Workshop ZIP must be the asset of GitHub release vVERSION, byte for byte. Each version
 # has one attempt folder; rerunning resumes it and never resubmits an unconfirmed commit.
+# A created item gets its gallery and public visibility on its web page, then becomes ITEM.
 set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VERSION="${1:?usage: publish-workshop.sh VERSION NOTE_FILE}"
@@ -31,7 +33,7 @@ os.environ["ONI_LOCK_FD"] = str(lock.fileno())
 os.execvp("bash", ["bash"] + sys.argv[3:])
 ' "$LOCK" "$ROOT_DIR" "$0" "$@"
 fi
-ITEM=3695988693
+ITEM=3695988693  # the listing every update goes to
 OWNER=76561198853917603
 ONI_APP_PATH="${ONI_APP_PATH:-$HOME/Library/Application Support/Steam/steamapps/common/OxygenNotIncluded/OxygenNotIncluded.app}"
 SDK="$ONI_APP_PATH/Contents/PlugIns/steam_api.bundle/Contents/MacOS/libsteam_api.dylib"
@@ -64,9 +66,25 @@ fi
 mv "$OUT/$ZIP_NAME.download" "$OUT/$ZIP_NAME"
 cc -O2 -Wall -Wextra -o "$OUT/workshop-publish" "$ROOT_DIR/scripts/workshop-publish.c"
 
+if [[ "$NOTE" == --new ]]; then
+  LISTING="${3:?usage: publish-workshop.sh VERSION --new LISTING_DIR}"
+  if [[ ! -f "$OUT/create.json" ]]; then
+    "$OUT/workshop-publish" "$SDK" create "$OWNER" new "$OUT/$ZIP_NAME" "$LISTING" "$OUT/create.json"
+  elif [[ "$(field create.json phase)" != completed || "$(field create.json result)" != 1 ]]; then
+    echo "An earlier creation did not complete; inspect $OUT/create.json and the owner's Workshop page" >&2
+    exit 1
+  fi
+  NEW="$(field create.json item)"
+  [[ -f "$OUT/verify.json" ]] && mv "$OUT/verify.json" "$OUT/verify-$(date -u +%Y%m%dT%H%M%SZ).json"
+  # The item did not exist before this run, so any install of it is this release.
+  "$OUT/workshop-publish" "$SDK" verify "$OWNER" "$NEW" "$OUT/$ZIP_NAME" 1 "$OUT/verify.json"
+  printf 'Created private item %s with %s and verified a subscriber install.\nReceipts: %s\n' "$NEW" "$VERSION" "$OUT"
+  exit 0
+fi
+
 if [[ ! -f "$OUT/publish.json" ]]; then
   readback before
-  "$OUT/workshop-publish" "$SDK" publish "$OWNER" "$OUT/$ZIP_NAME" "$NOTE" "$OUT/publish.json"
+  "$OUT/workshop-publish" "$SDK" publish "$OWNER" "$ITEM" "$OUT/$ZIP_NAME" "$NOTE" "$OUT/publish.json"
   readback after
 elif [[ "$(field publish.json phase)" == completed && "$(field publish.json result)" == 1 &&
   "$(field publish.json item)" == "$ITEM" && "$(field publish.json legalAgreementRequired)" == False ]]; then
@@ -87,5 +105,5 @@ if ! installed_release; then
   exit 1
 fi
 [[ -f "$OUT/verify.json" ]] && mv "$OUT/verify.json" "$OUT/verify-$(date -u +%Y%m%dT%H%M%SZ).json"
-"$OUT/workshop-publish" "$SDK" verify "$OWNER" "$OUT/$ZIP_NAME" "$(field after.json time_updated)" "$OUT/verify.json"
+"$OUT/workshop-publish" "$SDK" verify "$OWNER" "$ITEM" "$OUT/$ZIP_NAME" "$(field after.json time_updated)" "$OUT/verify.json"
 printf 'Published %s to %s and verified a subscriber install.\nReceipts: %s\n' "$VERSION" "$ITEM" "$OUT"
