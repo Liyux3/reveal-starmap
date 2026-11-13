@@ -46,6 +46,8 @@ Map export look, 2026-11-06, verbatim (after the first render export):
 
 > 可以啊，然后还有加上炫彩雕花，不同的隐藏款之类的呢。
 
+> 雕花炫彩黄金，然后等等等等，反正各种各样的东西，还有些什么盖章的或者什么的，都可以。
+
 Native acceptance uses additional copies under the project's ignored test directory.
 Never load or save over personal campaign paths. Restore temporary mod preferences and
 the original Continue pointer after the test session.
