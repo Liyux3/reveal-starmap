@@ -44,6 +44,8 @@ Map export look, 2026-11-06, verbatim (after the first render export):
 
 > 类似于集邮，集卡那种。你找下参考。
 
+> 可以啊，然后还有加上炫彩雕花，不同的隐藏款之类的呢。
+
 Native acceptance uses additional copies under the project's ignored test directory.
 Never load or save over personal campaign paths. Restore temporary mod preferences and
 the original Continue pointer after the test session.
