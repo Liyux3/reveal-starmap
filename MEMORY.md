@@ -48,6 +48,10 @@ Map export look, 2026-11-06, verbatim (after the first render export):
 
 > 雕花炫彩黄金，然后等等等等，反正各种各样的东西，还有些什么盖章的或者什么的，都可以。
 
+Workshop listing decision, 2026-11-13 16:45 UTC, verbatim (relayed by the listing session):
+
+> 一个新的，然后让它导向到新的 ... 把新的弄好 ... 优雅的做好，fully autonomous
+
 Native acceptance uses additional copies under the project's ignored test directory.
 Never load or save over personal campaign paths. Restore temporary mod preferences and
 the original Continue pointer after the test session.
