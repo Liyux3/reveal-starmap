@@ -55,6 +55,37 @@ Each line gives value, cost and fit with the mod's quiet, native style.
 Recommended order: ship the current fixes, then 1 and 2 together as 0.5, then 3 or 4
 depending on what players ask for. 5 waits for a request.
 
+## Map export as collectible cards (design approved 2026-11-13)
+
+The first export (a framed render) was rejected as a big screenshot; the user asked for something
+with game feel, then for stamp and card collecting, then for foil, filigree, gold, hidden variants
+and stamps of every kind. The approved design is a full-art trading card per asteroid, made only
+from the game's own material, and a set sheet for the cluster.
+
+- Art: the asteroid's revealed terrain, rendered through the timelapse capture with the target
+  world active (other worlds come out dimmed otherwise), covering the card; geyser UI sprites
+  (`Def.GetUISprite`) pinned at their cells, unidentified `GeyserGeneric` spawns as small "?" marks.
+- Chrome: wobbly ink outline with paper grain, title plate in GRAYSTROKE REGULAR SDF with an ink
+  rim, the world's `ClusterGridEntity.GetUISprite()` in a round badge, a facts panel over the
+  darkened lower art: traits or Start Asteroid, rarity marks, geyser tiles (one per kind, count
+  badge, g/s once analyzed), the world's own description as flavor text, set code (seed cluster
+  code such as SNDST-C), collector number, serial and seed.
+- Geysers: spawned `Geyser` components with their configuration plus pending `WorldGenSpawner`
+  spawns, which carry the type but no output until revealed.
+- Tiers, all deterministic per seed so a shared card can be reproduced: Common; Uncommon (2+ kinds
+  or 3+ geysers, silver etched frame); Rare (any metal volcano or 5+ kinds, holo sheen);
+  Ultra (start asteroid or 3+ metal volcano kinds, gold guilloche, corner rosettes, gold title).
+  Themed frames when one biome covers 60%: Frost, Molten, Tidal. Hidden variants from
+  h = sha256(seed|world name)[:8]: h%100==2 Misprint, h%64==3 Golden, h%48==5 Shadow,
+  h%16==0 Aurora; hidden cards are numbered past the set size (09/08).
+- Stamps and marks: REVEALED red ink when exported from a preview (SURVEYED blue when the
+  world is explored), wax seal with the printing pod on the start asteroid, a CLASSIFIED paper
+  label for Crashed Satellites or Gravitas sites, a 1st edition mark at cycle 1, serial
+  No. = h % 9999 + 1; planned: lucky-seed clover (3+ repeated digits), veteran stamp (cycle 1000+).
+- Reference implementation: `design/cards/mock6.py` (with the earlier passes it imports) draws
+  all of it from a LiveProbe run (`dump`, `assets`, World-preview renders); the C# port follows
+  it. Public images use the neutral save only, never the user's colony.
+
 ## Map export (built 2026-11-06, 0.5.0)
 
 The user asked for candidate 4 done elegantly with sharing in mind. It shipped as Shift + F9
