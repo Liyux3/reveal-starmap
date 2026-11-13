@@ -604,3 +604,17 @@ Pro failed twice with "Steam not initialized in time" after Steam had logged off
 Steam` signs back in from the saved session, and runs are launched in their own session so they
 outlive the agent's turn. 54 managed checks pass, including the seed hash and set code matching
 the reference design. Evidence: `artifacts/cards-20261113` (exports, player.log, perf).
+
+## 2026-11-13: Release 0.5.0
+
+The user chose a new Workshop listing that the old item points to; the listing session owns
+that work and the Workshop scripts. 0.5.0 was released on GitHub at the 0.4.2 bar.
+
+- Managed: 54 checks.
+- Neutral universe (`artifacts/store-20261113`): single card 2.5 s, 8-card set 12.7 s, frames
+  49 ms during composition, snapshot fields unchanged after the exports.
+- Campaign copy, private, outputs kept on the Pro (`artifacts/private-20261113`): single card
+  22.6 s (camera held 4.4 s), 11-card set 31.7 s (camera held 10.8 s), frames 89 ms on this
+  heavy colony, exploration, fog and analysis unchanged.
+- Store images from the neutral universe with the mod language set to English for that run
+  (`artifacts/store2-20261113`), composed into `artifacts/workshop/0.5.0.0/store/`.
