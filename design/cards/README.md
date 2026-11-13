@@ -8,4 +8,5 @@ so they stay in ignored `artifacts/` and never enter the repository.
     uv run --with pillow --with numpy design/cards/mock6.py RUN_DIR OUT_DIR
 
 `RUN_DIR` needs `dump.json`, `dump-*.bin`, `assets/` and `renders/` (one World-preview export per
-world). The design itself is described in `docs/directions.md`.
+world). It reads the game's `NotoSansUI-Regular.ttf` from `design/cards/fonts/` (copy it from
+the game's StreamingAssets/fonts; not committed). The design itself is in `docs/directions.md`.
